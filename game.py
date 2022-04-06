@@ -2,6 +2,7 @@ from tkinter import *
 from PIL import Image, ImageTk
 import player_data as pd
 import asynctkinter as at
+import time
 
 # Setup game window
 window = Tk()
@@ -9,9 +10,7 @@ window.title('Xenorule')
 window.configure(background='black')
 window.geometry('1280x720')
 window.resizable(width=NO, height=NO)
-ico = Image.open('appicon.gif')
-photo = ImageTk.PhotoImage(ico)
-window.wm_iconphoto(False, photo)
+window.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('appicon.gif')))
 
 # Setup text box
 playerStatsOutput = Text(window, width=60, height=9, bg='black', fg='white', font='times 16')
@@ -46,22 +45,34 @@ async def startGame():
         playerData = pd.saveOne
         slotNumber = 1
         if playerData['name'] == 'Empty':
-            at.start(newGame(answer))
-    if answer == 'two':
+            at.start(newGame())
+        else:
+            at.start(gameLoop())
+    elif answer == 'two':
         playerData = pd.saveTwo
         slotNumber = 2
         if playerData['name'] == 'Empty':
-            at.start(newGame(answer))
-    if answer == 'three':
+            at.start(newGame())
+        else:
+            at.start(gameLoop())
+    elif answer == 'three':
         playerData = pd.saveThree
         slotNumber = 3
         if playerData['name'] == 'Empty':
-            at.start(newGame(answer))
+            at.start(newGame())
+        else:
+            at.start(gameLoop())
+    else:
+        text = 'That is not an answer.'
+        setTextOutput(text)
+        await at.event(nextButton, '<Button>')
+        at.start(startGame())
+
 
 # async def gameLoop():
-    
 
-async def newGame(number):
+
+async def newGame():
     global playerData
     global slotNumber
     text = 'Welcome to Xenorule!\n'
@@ -104,6 +115,17 @@ async def newGame(number):
     text = 'Welcome ' + answer + ', are for your adventure to begin.'
     saveData()
     setTextOutput(text)
+    await at.event(nextButton, '<Button>')
+    at.start(gameLoop())
+
+
+async def gameLoop():
+    global playerData
+
+    updatePlayerStats()
+
+    text = 'What would you like to do?'
+    setTextOutput(text)
 
 
 def setTextOutput(text):
@@ -114,6 +136,7 @@ def setTextOutput(text):
 
 
 def updatePlayerStats():
+    global playerData
     playerStatsOutput.configure(state='normal')
     playerEquipOutput.configure(state='normal')
 
@@ -139,6 +162,10 @@ def saveData():
     global playerData
     global slotNumber
     f = open('player_data.py', 'w')
+    if slotNumber == 0:
+        f.write('saveOne = ' + str(pd.saveOne) + '\n')
+        f.write('saveTwo = ' + str(pd.saveTwo) + '\n')
+        f.write('saveThree = ' + str(pd.saveThree) + '\n')
     if slotNumber == 1:
         f.write('saveOne = ' + str(playerData) + '\n')
         f.write('saveTwo = ' + str(pd.saveTwo) + '\n')
@@ -155,6 +182,11 @@ def saveData():
 
 
 def exitGame():
+    setTextOutput('Saving data...')
+    saveData()
+    time.sleep(0.5)
+    setTextOutput('Saved\nGoodbye!')
+    time.sleep(0.5)
     window.destroy()
     exit()
 
@@ -166,7 +198,6 @@ submitButton = Button(window, text='Submit', width='6', bg='gray', fg='white', f
 submitButton.grid(row=5, column=0, sticky='w')
 exitButton = Button(window, text='Exit', width='6', command=exitGame, bg='gray', fg='white', font='times 16')
 exitButton.grid(row=6, column=0, sticky='w')
-
 
 at.start(startGame())
 
