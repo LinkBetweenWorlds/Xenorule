@@ -1,8 +1,8 @@
 from tkinter import *
 from PIL import Image, ImageTk
-import player_data as pd
+from saveData import player_data as pd
 import asynctkinter as at
-import time
+import vlc
 
 # Setup game window
 window = Tk()
@@ -13,13 +13,13 @@ window.resizable(width=NO, height=NO)
 window.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('appicon.gif')))
 
 # Setup text box
-playerStatsOutput = Text(window, width=60, height=9, bg='black', fg='white', font='times 16')
+playerStatsOutput = Text(window, width=60, height=10, bg='black', fg='white', font='times 16')
 playerStatsOutput.grid(row=0, column=0, sticky='w')
 playerStatsOutput.configure(state='disabled')
-playerEquipOutput = Text(window, width=60, height=9, bg='black', fg='white', font='times 16')
+playerEquipOutput = Text(window, width=60, height=10, bg='black', fg='white', font='times 16')
 playerEquipOutput.grid(row=0, column=1, sticky='w')
 playerEquipOutput.configure(state='disabled')
-textOutput = Text(window, width=120, height=14, bg='black', fg='white', font='times 16')
+textOutput = Text(window, width=120, height=13, bg='black', fg='white', font='times 16')
 textOutput.grid(row=1, column=0, columnspan=2, sticky='w')
 textOutput.configure(state='disabled')
 Label(window, text='Answer:', bg='black', fg='white', font='times 16').grid(row=2, column=0, sticky='w')
@@ -31,6 +31,67 @@ playerData = {}
 
 
 async def startGame():
+    text = 'Welcome to Xenorule!\n'
+    text += 'What would you like to do?\n\n'
+    text += 'Play\n'
+    options = ['play']
+    text += 'Erase\n'
+    options.append('erase')
+    text += 'Settings\n'
+    options.append('settings')
+    text += 'Exit'
+    options.append('exit')
+    setTextOutput(text)
+    playerButton['text'] = 'Submit'
+    await at.event(playerButton, '<Button>')
+    answer = grabText()
+    if options.__contains__(answer):
+        if answer == 'play':
+            at.start(playerSelect())
+        if answer == 'settings':
+            at.start(settings())
+    else:
+        text = 'That is not an options.'
+        setTextOutput(text)
+        playerButton['text'] = 'Next'
+        await at.event(playerButton, '<Button>')
+        at.start(startGame())
+
+
+async def settings():
+    print('Settings')
+    text = 'Settings\n'
+    text += '1. Background Music: ' + str(pd.settings['backgroundMusic']) + '\n'
+    text += '2. Sound FX: ' + str(pd.settings['soundFX']) + '\n'
+    text += '3. Back\n'
+    text += 'What settings would you like to change. (1, 2, 3)'
+    setTextOutput(text)
+    options = ['1', '2', '3,']
+    playerButton['text'] = 'Submit'
+    await at.event(playerButton, '<Button>')
+    answer = grabText()
+    if options.__contains__(answer):
+        if answer == '1':
+            var = not pd.settings['backgroundMusic']
+            pd.settings['backgroundMusic'] = var
+            saveData()
+            at.start(settings())
+        if answer == '2':
+            var = not pd.settings['soundFX']
+            pd.settings['soundFX'] = var
+            saveData()
+            at.start(settings())
+        if answer == '3':
+            at.start(startGame())
+    else:
+        text = 'That is not an options.'
+        setTextOutput(text)
+        playerButton['text'] = 'Next'
+        await at.event(playerButton, '<Button>')
+        at.start(settings())
+
+
+async def playerSelect():
     global playerData
     global slotNumber
     text = 'What save would you like to use?\n'
@@ -39,7 +100,8 @@ async def startGame():
     text += 'Save Three: ' + pd.saveThree['name'] + '\n'
     text += 'Answer: One, Two, Three'
     setTextOutput(text)
-    await at.event(submitButton, '<Button>')
+    playerButton['text'] = 'Submit'
+    await at.event(playerButton, '<Button>')
     answer = grabText()
     if answer == 'one':
         playerData = pd.saveOne
@@ -65,11 +127,9 @@ async def startGame():
     else:
         text = 'That is not an answer.'
         setTextOutput(text)
-        await at.event(nextButton, '<Button>')
+        playerButton['text'] = 'Next'
+        await at.event(playerButton, '<Button>')
         at.start(startGame())
-
-
-# async def gameLoop():
 
 
 async def newGame():
@@ -78,8 +138,10 @@ async def newGame():
     text = 'Welcome to Xenorule!\n'
     text += 'What is your name, traveller?'
     setTextOutput(text)
-    await at.event(submitButton, '<Button>')
+    playerButton['text'] = 'Submit'
+    await at.event(playerButton, '<Button>')
     answer = playerAnswerBox.get().capitalize()
+    playerAnswerBox.delete(0, END)
     playerData['name'] = answer
     playerData['level'] = 1
     playerData['exp'] = 0
@@ -115,13 +177,15 @@ async def newGame():
     text = 'Welcome ' + answer + ', are for your adventure to begin.'
     saveData()
     setTextOutput(text)
-    await at.event(nextButton, '<Button>')
+    playerButton['text'] = 'Next'
+    await at.event(playerButton, '<Button>')
     at.start(gameLoop())
 
 
 async def gameLoop():
     global playerData
 
+    # Update PlayerStats and equipment text
     updatePlayerStats()
 
     text = 'What would you like to do?'
@@ -143,10 +207,21 @@ def updatePlayerStats():
     playerStatsOutput.delete(0.0, END)
     playerEquipOutput.delete(0.0, END)
 
-    text = ''
+    statsText = 'Name: ' + playerData['name'] + '\n'
+    statsText += 'Level: ' + str(playerData['level']) + '\n'
+    statsText += 'Exp: ' + str(playerData['exp']) + '\n'
+    statsText += 'Health: ' + str(playerData['health']) + ' / ' + str(playerData['health_max']) + '\n'
+    statsText += 'MP: ' + str(playerData['mp']) + ' / ' + str(playerData['mp_max']) + '\n'
+    statsText += 'Wood: ' + str(playerData['wood']) + '\n'
+    statsText += 'Stone: ' + str(playerData['stone']) + '\n'
+    statsText += 'Iron ore: ' + str(playerData['iron_ore']) + ' / Iron: ' + str(playerData['iron']) + '\n'
+    statsText += 'Gold ore: ' + str(playerData['gold_ore']) + ' / Gold: ' + str(playerData['gold']) + '\n'
+    statsText += 'Coins: ' + str(playerData['money'])
 
-    playerStatsOutput.insert(END, text)
-    playerEquipOutput.insert(END, text)
+    equipText = ''
+
+    playerStatsOutput.insert(END, statsText)
+    playerEquipOutput.insert(END, equipText)
 
     playerStatsOutput.configure(state='disabled')
     playerEquipOutput.configure(state='disabled')
@@ -161,43 +236,45 @@ def grabText():
 def saveData():
     global playerData
     global slotNumber
-    f = open('player_data.py', 'w')
+    f = open('saveData/player_data.py', 'w')
     if slotNumber == 0:
         f.write('saveOne = ' + str(pd.saveOne) + '\n')
         f.write('saveTwo = ' + str(pd.saveTwo) + '\n')
         f.write('saveThree = ' + str(pd.saveThree) + '\n')
+        f.write('settings = ' + str(pd.settings))
     if slotNumber == 1:
         f.write('saveOne = ' + str(playerData) + '\n')
         f.write('saveTwo = ' + str(pd.saveTwo) + '\n')
         f.write('saveThree = ' + str(pd.saveThree) + '\n')
+        f.write('settings = ' + str(pd.settings))
     if slotNumber == 2:
         f.write('saveOne = ' + str(pd.saveOne) + '\n')
         f.write('saveTwo = ' + str(playerData) + '\n')
         f.write('saveThree = ' + str(pd.saveThree) + '\n')
+        f.write('settings = ' + str(pd.settings))
     if slotNumber == 3:
         f.write('saveOne = ' + str(pd.saveOne) + '\n')
         f.write('saveTwo = ' + str(pd.saveTwo) + '\n')
         f.write('saveThree = ' + str(playerData) + '\n')
+        f.write('settings = ' + str(pd.settings))
     f.close()
 
 
 def exitGame():
-    setTextOutput('Saving data...')
     saveData()
-    time.sleep(0.5)
-    setTextOutput('Saved\nGoodbye!')
-    time.sleep(0.5)
     window.destroy()
     exit()
 
 
 # Setup game buttons
-nextButton = Button(window, text='Next', width='6', bg='gray', fg='white', font='times 16')
-nextButton.grid(row=4, column=0, sticky='w')
-submitButton = Button(window, text='Submit', width='6', bg='gray', fg='white', font='times 16')
-submitButton.grid(row=5, column=0, sticky='w')
+# nextButton = Button(window, text='Next', width='6', bg='gray', fg='white', font='times 16')
+# nextButton.grid(row=4, column=0, sticky='w')
+# submitButton = Button(window, text='Submit', width='6', bg='gray', fg='white', font='times 16')
+# submitButton.grid(row=5, column=0, sticky='w')
+playerButton = Button(window, text='Next', width='6', bg='gray', fg='white', font='times 16')
+playerButton.grid(row=4, column=0, sticky='w')
 exitButton = Button(window, text='Exit', width='6', command=exitGame, bg='gray', fg='white', font='times 16')
-exitButton.grid(row=6, column=0, sticky='w')
+exitButton.grid(row=5, column=0, sticky='w')
 
 at.start(startGame())
 
