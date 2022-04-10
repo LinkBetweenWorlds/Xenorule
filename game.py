@@ -31,24 +31,26 @@ playerData = {}
 
 
 async def startGame():
+    bgMusic = vlc.MediaPlayer('sounds/Daredevil.mp3')
+    if pd.settings['backgroundMusic']:
+        bgMusic.play()
+    else:
+        bgMusic.stop()
     text = 'Welcome to Xenorule!\n'
     text += 'What would you like to do?\n\n'
-    text += 'Play\n'
-    options = ['play']
-    text += 'Erase\n'
-    options.append('erase')
-    text += 'Settings\n'
-    options.append('settings')
-    text += 'Exit'
-    options.append('exit')
+    text += '1. Play\n'
+    text += '2. Erase\n'
+    text += '3. Settings\n'
+    text += '4. Exit'
+    options = ['play', 'erase', 'settings', 'exit', '1', '2', '3', '4']
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
     answer = grabText()
     if options.__contains__(answer):
-        if answer == 'play':
+        if answer == 'play' or answer == '1':
             at.start(playerSelect())
-        if answer == 'settings':
+        if answer == 'settings' or answer == '3':
             at.start(settings())
     else:
         text = 'That is not an options.'
@@ -66,19 +68,17 @@ async def settings():
     text += '3. Back\n'
     text += 'What settings would you like to change. (1, 2, 3)'
     setTextOutput(text)
-    options = ['1', '2', '3,']
+    options = ['1', '2', '3']
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
     answer = grabText()
     if options.__contains__(answer):
         if answer == '1':
-            var = not pd.settings['backgroundMusic']
-            pd.settings['backgroundMusic'] = var
+            pd.settings['backgroundMusic'] = not pd.settings['backgroundMusic']
             saveData()
             at.start(settings())
         if answer == '2':
-            var = not pd.settings['soundFX']
-            pd.settings['soundFX'] = var
+            pd.settings['soundFX'] = not pd.settings['soundFX']
             saveData()
             at.start(settings())
         if answer == '3':
@@ -103,21 +103,21 @@ async def playerSelect():
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
     answer = grabText()
-    if answer == 'one':
+    if answer == 'one' or answer == '1':
         playerData = pd.saveOne
         slotNumber = 1
         if playerData['name'] == 'Empty':
             at.start(newGame())
         else:
             at.start(gameLoop())
-    elif answer == 'two':
+    elif answer == 'two' or answer == '2':
         playerData = pd.saveTwo
         slotNumber = 2
         if playerData['name'] == 'Empty':
             at.start(newGame())
         else:
             at.start(gameLoop())
-    elif answer == 'three':
+    elif answer == 'three' or answer == '3':
         playerData = pd.saveThree
         slotNumber = 3
         if playerData['name'] == 'Empty':
@@ -140,8 +140,8 @@ async def newGame():
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
-    answer = playerAnswerBox.get().capitalize()
-    playerAnswerBox.delete(0, END)
+    answer = grabText()
+    answer.capitalize()
     playerData['name'] = answer
     playerData['level'] = 1
     playerData['exp'] = 0
@@ -188,8 +188,35 @@ async def gameLoop():
     # Update PlayerStats and equipment text
     updatePlayerStats()
 
-    text = 'What would you like to do?'
+    text = 'What would you like to do?\n'
+    text += '1. Chop\n'
+    text += '2. Mine\n'
+    text += '3. Fight\n'
+    text += '4. Heal\n'
+    options = ['1', 'chop', '2', 'mine', '3', 'fight', '4', 'heal']
     setTextOutput(text)
+    playerButton['text'] = 'Submit'
+    await at.event(playerButton, '<Button>')
+    answer = grabText()
+    if options.__contains__(answer):
+        if answer == 'chop' or answer == '1':
+            text = 'You go to the forest to chop down some trees.'
+            setTextOutput(text)
+        if answer == 'mine' or answer == '2':
+            text = 'You go to the mines to get some stone.'
+            setTextOutput(text)
+        if answer == 'fight' or answer == '3':
+            text = 'You set to fight an enemy.'
+            setTextOutput(text)
+        if answer == 'heal' or answer == '4':
+            text = 'Which potions would you like to use.'
+            setTextOutput(text)
+    else:
+        text = 'That is not an answer.'
+        setTextOutput(text)
+        playerButton['text'] = 'Next'
+        await at.event(playerButton, '<Button>')
+        at.start(gameLoop())
 
 
 def setTextOutput(text):
