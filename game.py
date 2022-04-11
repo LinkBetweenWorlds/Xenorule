@@ -1,3 +1,4 @@
+import random
 from tkinter import *
 from PIL import Image, ImageTk
 from saveData import player_data as pd
@@ -219,11 +220,36 @@ async def gameLoop():
     answer = grabText()
     if options.__contains__(answer):
         if answer == 'chop' or answer == '1':
-            text = 'You go to the forest to chop down some trees.'
+            wood_gained = random.randint(2, 5) * level
+            text = 'You go to the forest to chop down some trees.\n'
+            text += 'You gained ' + str(wood_gained) + ' wood.'
+            playerData['wood'] += wood_gained
+            saveData()
             setTextOutput(text)
+            playerButton['text'] = 'Next'
+            await at.event(playerButton, '<Button>')
+            at.start(gameLoop())
         if answer == 'mine' or answer == '2':
-            text = 'You go to the mines to get some stone.'
+            iron_ore_gained = random.randint(3, 5) * level
+            gold_ore_gained = random.randint(2, 3) * level
+            stone_gained = random.randint(3, 4) * level
+            text = 'You go to the mines to get some stones'
+            if level >= 5:
+                text += ', iron and gold.\n'
+                playerData['iron_ore'] += iron_ore_gained
+                playerData['gold_ore'] += gold_ore_gained
+            else:
+                text += '.\n'
+            playerData['stone'] += stone_gained
+            text += 'You gained ' + str(stone_gained) + ' stone.\n'
+            if level >= 5:
+                text += 'You gained ' + str(iron_ore_gained) + ' iron ore.\n'
+                text += 'You gained ' + str(gold_ore_gained) + ' gold ore.'
+            saveData()
             setTextOutput(text)
+            playerButton['text'] = 'Next'
+            await at.event(playerButton, '<Button>')
+            at.start(gameLoop())
         if answer == 'fight' or answer == '3':
             text = 'You set to fight an enemy.'
             setTextOutput(text)
