@@ -187,13 +187,32 @@ async def gameLoop():
 
     # Update PlayerStats and equipment text
     updatePlayerStats()
-
+    level = playerData['level']
     text = 'What would you like to do?\n'
     text += '1. Chop\n'
     text += '2. Mine\n'
     text += '3. Fight\n'
     text += '4. Heal\n'
     options = ['1', 'chop', '2', 'mine', '3', 'fight', '4', 'heal']
+    if level >= 3:
+        text += '5. Shop\n'
+        options += ['shop', '5']
+    if level >= 5:
+        text += '6. Smelt\n'
+        options += ['smelt', '6']
+    if level >= 7:
+        text += '7. Travel\n'
+        options += ['travel', '7']
+    if level >= 10:
+        text += '8. Quests\n'
+        options += ['quests', '8']
+    if level >= 12:
+        text += '9. Dojo\n'
+        options += ['dojo', '9']
+    if level >= 15:
+        text += '10. Enchant\n'
+        options += ['enchant', '10']
+
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
@@ -210,6 +229,24 @@ async def gameLoop():
             setTextOutput(text)
         if answer == 'heal' or answer == '4':
             text = 'Which potions would you like to use.'
+            setTextOutput(text)
+        if answer == 'shop' or answer == '5':
+            text = 'Welcome to the shop!'
+            setTextOutput(text)
+        if answer == 'smelt' or answer == '6':
+            text = 'Welcome to the blacksmith.'
+            setTextOutput(text)
+        if answer == 'travel' or answer == '7':
+            text = 'Where would you like to go.'
+            setTextOutput(text)
+        if answer == 'quests' or answer == '8':
+            text = 'This is the quest board.'
+            setTextOutput(text)
+        if answer == 'dojo' or answer == '9':
+            text = 'Welcome to the Dojo.'
+            setTextOutput(text)
+        if answer == 'enchant' or answer == '10':
+            text = 'What weapon would you like to enchant.'
             setTextOutput(text)
     else:
         text = 'That is not an answer.'
