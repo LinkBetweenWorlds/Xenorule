@@ -42,7 +42,8 @@ async def startGame():
     text += '1. Play\n'
     text += '2. Erase\n'
     text += '3. Settings\n'
-    text += '4. Exit'
+    text += '4. Exit\n'
+    text += 'Answer: 1, 2, 3, 4'
     options = ['play', 'erase', 'settings', 'exit', '1', '2', '3', '4']
     setTextOutput(text)
     playerButton['text'] = 'Submit'
@@ -51,10 +52,113 @@ async def startGame():
     if options.__contains__(answer):
         if answer == 'play' or answer == '1':
             at.start(playerSelect())
+        if answer == 'erase' or answer == '2':
+            print('Erase')
+            at.start(erasePlayer())
         if answer == 'settings' or answer == '3':
             at.start(settings())
     else:
         text = 'That is not an options.'
+        setTextOutput(text)
+        playerButton['text'] = 'Next'
+        await at.event(playerButton, '<Button>')
+        at.start(startGame())
+
+
+async def newGame():
+    global playerData
+    global slotNumber
+    text = 'Welcome to Xenorule!\n'
+    text += 'What is your name, traveller?'
+    setTextOutput(text)
+    playerButton['text'] = 'Submit'
+    await at.event(playerButton, '<Button>')
+    answer = playerAnswerBox.get()
+    playerAnswerBox.delete(0, END)
+    playerData['name'] = answer
+    playerData['level'] = 1
+    playerData['exp'] = 0
+    playerData['type_class'] = 'none'
+    playerData['health'] = 10
+    playerData['health_max'] = 10
+    playerData['mp'] = 5
+    playerData['mp_max'] = 5
+    playerData['wood'] = 0
+    playerData['stone'] = 0
+    playerData['iron_ore'] = 0
+    playerData['iron'] = 0
+    playerData['gold_ore'] = 0
+    playerData['gold'] = 0
+    playerData['money'] = 0
+    playerData['weapon'] = 'none'
+    playerData['weapon_inventory'] = []
+    playerData['armor'] = 'none'
+    playerData['armor_inventory'] = []
+    playerData['inventory'] = {
+        'small_health_potions': 0,
+        'medium_health_potions': 0,
+        'large_health_potions': 0,
+        'max_health_potions': 0,
+        'small_mp_potions': 0,
+        'medium_mp_potions': 0,
+        'large_mp_potions': 0,
+        'max_mp_potions': 0
+    }
+    playerData['world'] = 'Green Field'
+    playerData['quests_completed'] = []
+    playerData['current_quest'] = 'none'
+    text = 'Welcome ' + answer + ', are you ready for your adventure to begin.'
+    saveData()
+    setTextOutput(text)
+    playerButton['text'] = 'Next'
+    await at.event(playerButton, '<Button>')
+    at.start(playerSelect())
+
+
+async def playerSelect():
+    global playerData
+    global slotNumber
+    text = 'What save would you like to use?\n'
+    text += '1. ' + pd.saveOne['name'] + '\n'
+    text += '2. ' + pd.saveTwo['name'] + '\n'
+    text += '3. ' + pd.saveThree['name'] + '\n'
+    text += 'Answer: 1, 2, 3'
+    setTextOutput(text)
+    playerButton['text'] = 'Submit'
+    await at.event(playerButton, '<Button>')
+    answer = grabText()
+    if answer == 'one' or answer == '1':
+        playerData = pd.saveOne
+        slotNumber = 1
+        if playerData['name'] == 'Empty':
+            at.start(newGame())
+        else:
+            if playerData['type_class'] == 'none':
+                at.start(chooseClass())
+            else:
+                at.start(gameLoop())
+    elif answer == 'two' or answer == '2':
+        playerData = pd.saveTwo
+        slotNumber = 2
+        if playerData['name'] == 'Empty':
+            at.start(newGame())
+        else:
+            if playerData['type_class'] == 'none':
+                at.start(chooseClass())
+            else:
+                at.start(gameLoop())
+    elif answer == 'three' or answer == '3':
+        playerData = pd.saveThree
+        slotNumber = 3
+        if playerData['name'] == 'Empty':
+            at.start(newGame())
+        else:
+            if playerData['type_class'] == 'none':
+                at.start(chooseClass())
+            else:
+                at.start(gameLoop())
+    else:
+        text = 'That is not an answer.'
         setTextOutput(text)
         playerButton['text'] = 'Next'
         await at.event(playerButton, '<Button>')
@@ -92,95 +196,113 @@ async def settings():
         at.start(settings())
 
 
-async def playerSelect():
+async def chooseClass():
     global playerData
-    global slotNumber
-    text = 'What save would you like to use?\n'
-    text += 'Save One: ' + pd.saveOne['name'] + '\n'
-    text += 'Save Two: ' + pd.saveTwo['name'] + '\n'
-    text += 'Save Three: ' + pd.saveThree['name'] + '\n'
-    text += 'Answer: One, Two, Three'
+
+    text = 'What class would you like to be?\n'
+    text += '1. Mage: Casts powerful spells to defeat their enemies.\n'
+    text += '2. Paladin: Slashes their enemies to pieces.\n'
+    text += '3. Archer: Rains arrows down on their foes.\n'
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
     answer = grabText()
-    if answer == 'one' or answer == '1':
-        playerData = pd.saveOne
-        slotNumber = 1
-        if playerData['name'] == 'Empty':
-            at.start(newGame())
-        else:
-            at.start(gameLoop())
-    elif answer == 'two' or answer == '2':
-        playerData = pd.saveTwo
-        slotNumber = 2
-        if playerData['name'] == 'Empty':
-            at.start(newGame())
-        else:
-            at.start(gameLoop())
-    elif answer == 'three' or answer == '3':
-        playerData = pd.saveThree
-        slotNumber = 3
-        if playerData['name'] == 'Empty':
-            at.start(newGame())
-        else:
-            at.start(gameLoop())
+    options = ['mage', '1', 'paladin', '2', 'archer', '3']
+    if options.__contains__(answer):
+        playerButton['text'] = 'Next'
+        if answer == 'mage' or answer == '1':
+            text = 'You selected mage class.\n'
+            text += 'You got a wand.'
+            setTextOutput(text)
+            playerData['type_class'] = 'mage'
+            playerData['weapon'] = 'wand'
+            playerData['weapon_inventory'].append(playerData['weapon'])
+        if answer == 'paladin' or answer == '2':
+            text = 'You have selected paladin class.\n'
+            text += 'You received a sword.'
+            setTextOutput(text)
+            playerData['type_class'] = 'paladin'
+            playerData['weapon'] = 'sword'
+            playerData['weapon_inventory'].append(playerData['weapon'])
+        if answer == 'archer' or answer == '3':
+            text = 'You are now an archer.\n'
+            text += 'You got a bow.'
+            setTextOutput(text)
+            playerData['type_class'] = 'archer'
+            playerData['weapon'] = 'bow'
+            playerData['weapon_inventory'].append(playerData['weapon'])
+        await at.event(playerButton, '<Button>')
+        saveData()
+        at.start(playerSelect())
     else:
         text = 'That is not an answer.'
         setTextOutput(text)
         playerButton['text'] = 'Next'
         await at.event(playerButton, '<Button>')
+        at.start(chooseClass())
+
+
+async def erasePlayer():
+    if pd.saveOne['name'] == 'Empty' and pd.saveTwo['name'] == 'Empty' and pd.saveThree['name'] == 'Empty':
+        text = 'You do not have any slots to erase.'
+        setTextOutput(text)
+        playerButton['text'] = 'Next'
+        await at.event(playerButton, '<Button>')
         at.start(startGame())
-
-
-async def newGame():
-    global playerData
-    global slotNumber
-    text = 'Welcome to Xenorule!\n'
-    text += 'What is your name, traveller?'
-    setTextOutput(text)
-    playerButton['text'] = 'Submit'
-    await at.event(playerButton, '<Button>')
-    answer = grabText()
-    answer.capitalize()
-    playerData['name'] = answer
-    playerData['level'] = 1
-    playerData['exp'] = 0
-    playerData['type_class'] = 'none'
-    playerData['health'] = 10
-    playerData['health_max'] = 10
-    playerData['mp'] = 5
-    playerData['mp_max'] = 5
-    playerData['wood'] = 0
-    playerData['stone'] = 0
-    playerData['iron_ore'] = 0
-    playerData['iron'] = 0
-    playerData['gold_ore'] = 0
-    playerData['gold'] = 0
-    playerData['money'] = 0
-    playerData['weapon'] = 'none'
-    playerData['weapon_inventory'] = []
-    playerData['armor'] = 'none'
-    playerData['armor_inventory'] = []
-    playerData['inventory'] = {
-        'small_health_potions': 0,
-        'medium_health_potions': 0,
-        'large_health_potions': 0,
-        'max_health_potions': 0,
-        'small_mp_potions': 0,
-        'medium_mp_potions': 0,
-        'large_mp_potions': 0,
-        'max_mp_potions': 0
-    }
-    playerData['world'] = 'Green Field'
-    playerData['quests_completed'] = []
-    playerData['current_quest'] = 'none'
-    text = 'Welcome ' + answer + ', are for your adventure to begin.'
-    saveData()
-    setTextOutput(text)
-    playerButton['text'] = 'Next'
-    await at.event(playerButton, '<Button>')
-    at.start(gameLoop())
+    else:
+        text = 'Which slot would you like to erase?\n'
+        options = ['exit']
+        if pd.saveOne['name'] != 'Empty':
+            text += '1. ' + pd.saveOne['name'] + '\n'
+            options += ['1']
+        if pd.saveTwo['name'] != 'Empty':
+            text += '2. ' + pd.saveTwo['name'] + '\n'
+            options += ['2']
+        if pd.saveThree['name'] != 'Empty':
+            text += '3. ' + pd.saveThree['name'] + '\n'
+            options += ['3']
+        text += 'Options: 1, 2, 3, exit'
+        setTextOutput(text)
+        playerButton['text'] = 'Submit'
+        await at.event(playerButton, '<Button>')
+        answer = grabText()
+        if options.__contains__(answer):
+            if answer == 'exit':
+                at.start(startGame())
+            else:
+                text = 'Are you sure you want to erase this save slot you cannot get the data back.\n'
+                text += 'Yes / No'
+                setTextOutput(text)
+                playerButton['text'] = 'Submit'
+                await at.event(playerButton, '<Button>')
+                eraseSlot = answer
+                answer = grabText()
+                options = ['yes', 'no']
+                if options.__contains__(answer):
+                    if answer == 'yes':
+                        if eraseSlot == '1':
+                            pd.saveOne['name'] = 'Empty'
+                            pd.saveOne['type_class'] = 'none'
+                        if eraseSlot == '2':
+                            pd.saveTwo['name'] = 'Empty'
+                            pd.saveTwo['type_class'] = 'none'
+                        if eraseSlot == '2':
+                            pd.saveThree['name'] = 'Empty'
+                            pd.saveThree['type_class'] = 'none'
+                        saveData()
+                        text = 'Save slot erased.'
+                        setTextOutput(text)
+                        playerButton['text'] = 'Next'
+                        await at.event(playerButton, '<Button>')
+                        at.start(startGame())
+                    if answer == 'no':
+                        at.start(startGame())
+        else:
+            text = 'That is not an options.'
+            setTextOutput(text)
+            playerButton['text'] = 'Next'
+            await at.event(playerButton, '<Button>')
+            at.start(erasePlayer())
 
 
 async def gameLoop():
