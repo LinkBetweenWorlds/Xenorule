@@ -254,8 +254,7 @@ async def gameLoop():
             text = 'You set to fight an enemy.'
             setTextOutput(text)
         if answer == 'heal' or answer == '4':
-            text = 'Which potions would you like to use.'
-            setTextOutput(text)
+            at.start(heal())
         if answer == 'shop' or answer == '5':
             text = 'Welcome to the shop!'
             setTextOutput(text)
@@ -282,6 +281,231 @@ async def gameLoop():
         at.start(gameLoop())
 
 
+async def heal():
+    global playerData
+
+    if playerData['health'] == playerData['health_max'] and playerData['mp'] == playerData['mp_max']:
+        text = 'You are already at max health and MP.\n'
+        text += 'You have no reason to heal.'
+        setTextOutput(text)
+        playerButton['text'] = 'Next'
+        await at.event(playerButton, '<Button>')
+        at.start(gameLoop())
+    else:
+        small_health_pot = playerData['inventory']['small_health_potions']
+        medium_health_pot = playerData['inventory']['medium_health_potions']
+        large_health_pot = playerData['inventory']['large_health_potions']
+        max_health_pot = playerData['inventory']['max_health_potions']
+        total_health_pot = small_health_pot + medium_health_pot + large_health_pot + max_health_pot
+
+        small_mp_pot = playerData['inventory']['small_mp_potions']
+        medium_mp_pot = playerData['inventory']['medium_mp_potions']
+        large_mp_pot = playerData['inventory']['large_mp_potions']
+        max_mp_pot = playerData['inventory']['max_mp_potions']
+        total_mp_pot = small_mp_pot + medium_mp_pot + large_mp_pot + max_mp_pot
+
+        if total_mp_pot == 0 and total_health_pot == 0:
+            text = 'You do not have any potions to use!\n'
+            text += 'You can get them from the shop or by defeating enemies.'
+            setTextOutput(text)
+            playerButton['text'] = 'Next'
+            await at.event(playerButton, '<Button>')
+            at.start(gameLoop())
+        else:
+            text = 'What potion would you like to use?\n'
+            options = ['exit', 'back']
+            n = 1
+            shp = 0
+            mhp = 0
+            lhp = 0
+            mahp = 0
+            smp = 0
+            mmp = 0
+            lmp = 0
+            mamp = 0
+            if total_health_pot > 0:
+                text += '\nHealth Potions\n'
+            if small_health_pot > 0:
+                text += str(n) + '. Small Health Potion: x' + str(small_health_pot) + ' Restores 10 health points.\n'
+                options += ['smallhealth', str(n)]
+                shp = n
+                n += 1
+            if medium_health_pot > 0:
+                text += str(n) + '. Medium Health Potion: x' + str(medium_health_pot) + ' Restores 35 health points.\n'
+                options += ['mediumhealth', str(n)]
+                mhp = n
+                n += 1
+            if large_health_pot > 0:
+                text += str(n) + '. Large Health Potion: x' + str(large_health_pot) + ' Restores 70 health points.\n'
+                options += ['largehealth', str(n)]
+                lhp = n
+                n += 1
+            if max_health_pot > 0:
+                text += str(n) + '. Max Health Potion: x' + str(max_health_pot) + ' Restores all your health points.\n'
+                options += ['maxhealth', str(n)]
+                mahp = n
+                n += 1
+            if total_mp_pot > 0:
+                text += '\nMP Potions\n'
+            if small_mp_pot > 0:
+                text += str(n) + '. Small MP Potion: x' + str(small_mp_pot) + ' Restores 10 MP.\n'
+                options += ['smallmp', str(n)]
+                smp = n
+                n += 1
+            if medium_mp_pot > 0:
+                text += str(n) + '. Medium MP Potion: x' + str(medium_mp_pot) + ' Restores 35 MP.\n'
+                options += ['mediummp', str(n)]
+                mmp = n
+                n += 1
+            if large_mp_pot > 0:
+                text += str(n) + '. Large MP Potion: x' + str(large_mp_pot) + ' Restores 70 MP.\n'
+                options += ['largemp', str(n)]
+                lmp = n
+                n += 1
+            if max_mp_pot > 0:
+                text += str(n) + '. Max MP Potion: x' + str(max_mp_pot) + ' Restores all your MP.\n'
+                options += ['maxmp', str(n)]
+                mamp = 0
+            setTextOutput(text)
+            playerButton['text'] = 'Submit'
+            await at.event(playerButton, '<Button>')
+            answer = grabText()
+            if options.__contains__(answer):
+                num = random.randint(1, 3)
+                if answer.__contains__('smallhealth') or answer == shp:
+                    if num == 1:
+                        text = 'You use a small health potion and gained 10 health points.'
+                    if num == 2:
+                        text = 'You drank a small health potion and regenerated 10 health points.'
+                    if num == 3:
+                        text = 'You consumed a small health potion and got back 10 health points.'
+                    setTextOutput(text)
+                    playerData['health'] += 10
+                    if playerData['health'] > playerData['health_max']:
+                        playerData['health'] = playerData['health_max']
+                    playerData['inventory']['small_health_potions'] -= 1
+                    saveData()
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(gameLoop())
+                if answer.__contains__('mediumhealth') or answer == mhp:
+                    if num == 1:
+                        text = 'You use a medium health potion and gained 35 health points.'
+                    if num == 2:
+                        text = 'You drank a medium health potion and regenerated 35 health points.'
+                    if num == 3:
+                        text = 'You consumed a medium health potion and got back 35 health points.'
+                    setTextOutput(text)
+                    playerData['health'] += 35
+                    if playerData['health'] > playerData['health_max']:
+                        playerData['health'] = playerData['health_max']
+                    playerData['inventory']['medium_health_potions'] -= 1
+                    saveData()
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(gameLoop())
+                if answer.__contains__('largehealth') or answer == lhp:
+                    if num == 1:
+                        text = 'You use a large health potion and gained 70 health points.'
+                    if num == 2:
+                        text = 'You drank a large health potion and regenerated 70 health points.'
+                    if num == 3:
+                        text = 'You consumed a large health potion and got back 70 health points.'
+                    setTextOutput(text)
+                    playerData['health'] += 70
+                    if playerData['health'] > playerData['health_max']:
+                        playerData['health'] = playerData['health_max']
+                    playerData['inventory']['large_health_potions'] -= 1
+                    saveData()
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(gameLoop())
+                if answer.__contains__('maxhealth') or answer == mahp:
+                    if num == 1:
+                        text = 'You use a max health potion and gained all your health points back.'
+                    if num == 2:
+                        text = 'You drank a max health potion and regenerated all your health points.'
+                    if num == 3:
+                        text = 'You consumed a max health potion and got back all your health points.'
+                    setTextOutput(text)
+                    playerData['health'] = playerData['health_max']
+                    playerData['inventory']['max_health_potions'] -= 1
+                    saveData()
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(gameLoop())
+                if answer.__contains__('smallmp') or answer == smp:
+                    if num == 1:
+                        text = 'You use a small MP potion and gained 10 MP.'
+                    if num == 2:
+                        text = 'You drank a small MP potion and regenerated 10 MP.'
+                    if num == 3:
+                        text = 'You consumed a small MP potion and got back 10 MP.'
+                    setTextOutput(text)
+                    playerData['mp'] += 10
+                    if playerData['mp'] > playerData['mp_max']:
+                        playerData['mp'] = playerData['mp']
+                    playerData['inventory']['small_mp_potions'] -= 1
+                    saveData()
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(gameLoop())
+                if answer.__contains__('mediummp') or answer == mmp:
+                    if num == 1:
+                        text = 'You use a medium MP potion and gained 35 MP.'
+                    if num == 2:
+                        text = 'You drank a medium MP potion and regenerated 35 MP.'
+                    if num == 3:
+                        text = 'You consumed a medium MP potion and got back 35 MP.'
+                    setTextOutput(text)
+                    playerData['mp'] += 35
+                    if playerData['mp'] > playerData['mp_max']:
+                        playerData['mp'] = playerData['mp_max']
+                    playerData['inventory']['medium_mp_potions'] -= 1
+                    saveData()
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(gameLoop())
+                if answer.__contains__('largemp') or answer == lmp:
+                    if num == 1:
+                        text = 'You use a large MP potion and gained 70 MP.'
+                    if num == 2:
+                        text = 'You drank a large MP potion and regenerated 70 MP.'
+                    if num == 3:
+                        text = 'You consumed a large MP potion and got back 70 MP.'
+                    setTextOutput(text)
+                    playerData['mp'] += 70
+                    if playerData['mp'] > playerData['mp_max']:
+                        playerData['mp'] = playerData['mp_max']
+                    playerData['inventory']['large_mp_potions'] -= 1
+                    saveData()
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(gameLoop())
+                if answer.__contains__('maxmp') or answer == mamp:
+                    if num == 1:
+                        text = 'You use a max MP potion and gained all your MP back.'
+                    if num == 2:
+                        text = 'You drank a max MP potion and regenerated all your MP.'
+                    if num == 3:
+                        text = 'You consumed a max MP potion and got back all your MP.'
+                    setTextOutput(text)
+                    playerData['health'] = playerData['health_max']
+                    playerData['inventory']['max_health_potions'] -= 1
+                    saveData()
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(gameLoop())
+                if answer == 'exit' or answer == 'back':
+                    at.start(gameLoop())
+            else:
+                text = 'You do not have that potion.'
+                setTextOutput(text)
+                playerButton['text'] = 'Next'
+                await at.event(playerButton, '<Button>')
+                at.start(heal())
+
+
 def setTextOutput(text):
     textOutput.configure(state='normal')
     textOutput.delete(0.0, END)
@@ -304,11 +528,15 @@ def updatePlayerStats():
     statsText += 'MP: ' + str(playerData['mp']) + ' / ' + str(playerData['mp_max']) + '\n'
     statsText += 'Wood: ' + str(playerData['wood']) + '\n'
     statsText += 'Stone: ' + str(playerData['stone']) + '\n'
-    statsText += 'Iron ore: ' + str(playerData['iron_ore']) + ' / Iron: ' + str(playerData['iron']) + '\n'
-    statsText += 'Gold ore: ' + str(playerData['gold_ore']) + ' / Gold: ' + str(playerData['gold']) + '\n'
+    statsText += 'Iron Ore: ' + str(playerData['iron_ore']) + ' / Iron: ' + str(playerData['iron']) + '\n'
+    statsText += 'Gold Ore: ' + str(playerData['gold_ore']) + ' / Gold: ' + str(playerData['gold']) + '\n'
     statsText += 'Coins: ' + str(playerData['money'])
 
-    equipText = ''
+    equipText = 'Class: ' + playerData['type_class'].capitalize()
+    equipText += '\nWeapon: ' + playerData['weapon'].capitalize()
+    equipText += '\nArmor: ' + playerData['armor'].capitalize()
+    equipText += '\nWorld: ' + playerData['world'].capitalize()
+    equipText += '\nCurrent Quest: ' + playerData['current_quest'].capitalize()
 
     playerStatsOutput.insert(END, statsText)
     playerEquipOutput.insert(END, equipText)
