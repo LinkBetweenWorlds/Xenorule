@@ -1153,8 +1153,20 @@ async def smelt():
 async def travel():
     # Sends player to a new world.
     global playerData
+    level = playerData['level']
 
-    text = 'Where would you like to go?'
+    text = 'Where would you like to go?\n\n'
+    text += '1. Green Field\n'
+    options = ['greenfield', '1']
+    if level >= 5:
+        text += '2. Deep Forest\n'
+        options += ['deepforest', '2']
+    if level >= 9:
+        text += '3. Ice Plain\n'
+        options += ['iceplain', '3']
+    if level > 13:
+        text += '4. Lava Cave\n'
+        options += ['lavacave', '4']
     setTextOutput(text)
 
 
