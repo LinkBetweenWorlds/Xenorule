@@ -647,7 +647,7 @@ async def shop():
     answer = grabText()
     if options.__contains__(answer):
         if answer == 'buy' or answer == '1':
-            text = 'What would you lie to buy?\n'
+            text = 'What would you lie to buy?\n\n'
             text += '1. Potions\n'
             text += '2. Materials'
             options = ['1', '2', 'potions', 'potion', 'pot', 'materials', 'material']
@@ -814,7 +814,7 @@ async def shop():
                         await at.event(playerButton, '<Button>')
                         at.start(shop())
                 if answer == 'materials' or answer == '2':
-                    text = 'What materials would you like to buy.\n'
+                    text = 'What materials would you like to buy.\n\n'
                     text += '1. Wood    2 coins\n'
                     text += '2. Stone    3 coins\n'
                     options += ['1', '2', 'wood', 'stone']
@@ -829,6 +829,121 @@ async def shop():
                     setTextOutput(text)
                     playerButton['text'] = 'Submit'
                     await at.event(playerButton, '<Button>')
+                    item = grabText()
+                    if options.__contains__(item):
+                        coins = playerData['money']
+                        text = 'How much would you like to buy?'
+                        setTextOutput(text)
+                        await at.event(playerButton, '<Button>')
+                        answer = grabText()
+                        if item == 'wood' or item == '1':
+                            money_needed = 2 * int(answer)
+                            if money_needed < coins:
+                                text = 'You brought ' + answer + ' wood for ' + str(money_needed) + ' coins.'
+                                setTextOutput(text)
+                                playerData['wood'] += int(answer)
+                                playerData['money'] -= money_needed
+                                saveData()
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough money.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if item == 'stone' or item == '2':
+                            money_needed = 3 * int(answer)
+                            if money_needed < coins:
+                                text = 'You brought ' + answer + ' stone for ' + str(money_needed) + ' coins.'
+                                setTextOutput(text)
+                                playerData['stone'] += int(answer)
+                                playerData['money'] -= money_needed
+                                saveData()
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough money.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if item == 'ironore' or item == '3':
+                            money_needed = 10 * int(answer)
+                            if money_needed < coins:
+                                text = 'You brought ' + answer + ' iron ore for ' + str(money_needed) + ' coins.'
+                                setTextOutput(text)
+                                playerData['iron_ore'] += int(answer)
+                                playerData['money'] -= money_needed
+                                saveData()
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough money.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if item == 'goldore' or item == '4':
+                            money_needed = 15 * int(answer)
+                            if money_needed < coins:
+                                text = 'You brought ' + answer + ' gold ore for ' + str(money_needed) + ' coins.'
+                                setTextOutput(text)
+                                playerData['gold_ore'] += int(answer)
+                                playerData['money'] -= money_needed
+                                saveData()
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough money.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if item == 'iron' or item == '5':
+                            money_needed = 20 * int(answer)
+                            if money_needed < coins:
+                                text = 'You brought ' + answer + ' iron for ' + str(money_needed) + ' coins.'
+                                setTextOutput(text)
+                                playerData['iron'] += int(answer)
+                                playerData['money'] -= money_needed
+                                saveData()
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough money.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if item == 'gold' or item == '6':
+                            money_needed = 30 * int(answer)
+                            if money_needed < coins:
+                                text = 'You brought ' + answer + ' gold for ' + str(money_needed) + ' coins.'
+                                setTextOutput(text)
+                                playerData['gold'] += int(answer)
+                                playerData['money'] -= money_needed
+                                saveData()
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough money.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                    else:
+                        text = 'That is not something you can buy.'
+                        setTextOutput(text)
+                        playerButton['text'] = 'Next'
+                        await at.event(playerButton, '<Button>')
+                        at.start(shop())
             else:
                 text = 'That is not something you can buy.'
                 setTextOutput(text)
