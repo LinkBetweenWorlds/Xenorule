@@ -1093,15 +1093,61 @@ async def smelt():
 
     text = 'Welcome to the blacksmiths.\n'
     text += 'What would you like to smelt?\n\n'
-    text += '1. Iron    Requires: 1 iron ore, 1 wood\n'
-    text += '2. Gold    Requires: 1 gold ore, 2 wood\n'
-    options = ['1', '2', 'iron', 'gold']
+    text += '1. Iron    Requires: 1 iron ore, 1 wood    Cost 10 coins\n'
+    text += '2. Gold    Requires: 1 gold ore, 2 wood    Cost 15 coins\n'
+    options = ['1', '2', 'iron', 'gold', 'back', 'exit']
+    setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
     item = grabText()
     if options.__contains__(item):
-        text = 'How much would you like to make?'
-    setTextOutput(text)
+        if item == 'exit' or item == 'back':
+            at.start(gameLoop())
+        else:
+            text = 'How much would you like to make?'
+            setTextOutput(text)
+            await at.event(playerButton, '<Button>')
+            answer = grabText()
+            if item == 'iron' or item == '1':
+                money_needed = 10 * int(answer)
+                if playerData['iron_ore'] >= int(answer) and playerData['wood'] >= int(answer) and playerData['money'] >= money_needed:
+                    text = 'You made ' + answer + ' iron.'
+                    setTextOutput(text)
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    playerData['iron_ore'] -= int(answer)
+                    playerData['wood'] -= int(answer)
+                    playerData['money'] -= money_needed
+                    playerData['iron'] += int(answer)
+                    saveData()
+                    at.start(gameLoop())
+                else:
+                    text = 'You do not have enough resources to make that.'
+                    setTextOutput(text)
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(smelt())
+            if item == 'gold' or item == '2':
+                money_needed = 15 * int(answer)
+                if playerData['gold_ore'] >= int(answer) and playerData['wood'] >= (int(answer)*2) and playerData['money'] >= money_needed:
+                    text = 'You made ' + answer + ' gold.'
+                    setTextOutput(text)
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    playerData['gold_ore'] -= int(answer)
+                    playerData['wood'] -= int(answer) * 2
+                    playerData['money'] -= money_needed
+                    playerData['gold'] += int(answer)
+                    saveData()
+                    at.start(gameLoop())
+                else:
+                    text = 'You do not have enough resources to make that.'
+                    setTextOutput(text)
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(smelt())
+    else:
+        text = 'That is not something you can make.'
 
 
 async def travel():
@@ -1114,7 +1160,7 @@ async def travel():
 
 async def quests():
     # Gives player new quests
-    # PLayer gets rewards for completing quests
+    # Player gets rewards for completing quests
     global playerData
 
     text = 'Welcome to the quest board.'
