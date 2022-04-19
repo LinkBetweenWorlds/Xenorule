@@ -1,3 +1,4 @@
+import math
 import random
 from tkinter import *
 from PIL import Image, ImageTk
@@ -634,9 +635,9 @@ async def shop():
     global playerData
     level = playerData['level']
     text = 'Welcome to the shop!\n'
-    text += 'What would you like to buy?\n\n'
-    text += '1. Potions\n'
-    options = ['back', 'exit', 'potions', 'pots', 'pot', '1']
+    text += 'What would you like to do?\n\n'
+    text += '1. Buy\n'
+    options = ['back', 'exit', 'buy', '1']
     if level >= 5:
         text += '2. Sell\n'
         options += ['sell', '2']
@@ -645,159 +646,191 @@ async def shop():
     await at.event(playerButton, '<Button>')
     answer = grabText()
     if options.__contains__(answer):
-        if answer.__contains__('pot') or answer == '1':
-            text = 'Which potion would you like to buy?\n\n'
-            text += '1. Small Health Potion    Heals 10 health points    Cost: 10 coins\n'
-            text += '2. Small MP Potion    Heals 10 MP    Cost: 10 coins\n\n'
-            options = ['1', '2', 'smallhealth', 'smallmp', 'smallhealthpotion', 'smallmppotion']
-            if level >= 4:
-                text += '3. Medium Health Potion    Heals 35 health points    Cost: 55 coins\n'
-                text += '4. Medium MP Potion    Heals 35 MP    Cost: 55 coins\n\n'
-                options += ['3', '4', 'mediumhealth', 'mediummp', 'mediumhealthpotion', 'mediummppotion']
-            if level >= 9:
-                text += '5. Large Health Potion    Heals 75 health points    Cost: 100 coins\n'
-                text += '6. Large MP Potion    Heals 75 MP    Cost: 100 coins\n\n'
-                options += ['5', '6', 'largehealth', 'largemp', 'largehealthpotion', 'largemppotion']
-            if level >= 13:
-                text += '7. Max Health Potion    Heals all health points    Cost: 175 coins\n'
-                text += '8. Max MP Potion    Heals all MP    Cost: 175 coins\n'
-                options += ['7', '8', 'maxhealth', 'maxmp', 'maxhealthpotion', 'maxmppotion']
+        if answer == 'buy' or answer == '1':
+            text = 'What would you lie to buy?\n'
+            text += '1. Potions\n'
+            text += '2. Materials'
+            options = ['1', '2', 'potions', 'potion', 'pot', 'materials', 'material']
             setTextOutput(text)
             playerButton['text'] = 'Submit'
             await at.event(playerButton, '<Button>')
             answer = grabText()
             if options.__contains__(answer):
-                coins = playerData['money']
-                if answer.__contains__('smallhealth') or answer == '1':
-                    if coins >= 10:
-                        text = 'You purchased a small health potion.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['money'] -= 10
-                        playerData['inventory']['small_health_potions'] += 1
-                        saveData()
-                        at.start(gameLoop())
+                if answer.__contains__('pot') or answer == '1':
+                    text = 'Which potion would you like to buy?\n\n'
+                    text += '1. Small Health Potion    Heals 10 health points    Cost: 10 coins\n'
+                    text += '2. Small MP Potion    Heals 10 MP    Cost: 10 coins\n\n'
+                    options = ['1', '2', 'smallhealth', 'smallmp', 'smallhealthpotion', 'smallmppotion']
+                    if level >= 4:
+                        text += '3. Medium Health Potion    Heals 35 health points    Cost: 55 coins\n'
+                        text += '4. Medium MP Potion    Heals 35 MP    Cost: 55 coins\n\n'
+                        options += ['3', '4', 'mediumhealth', 'mediummp', 'mediumhealthpotion', 'mediummppotion']
+                    if level >= 9:
+                        text += '5. Large Health Potion    Heals 75 health points    Cost: 100 coins\n'
+                        text += '6. Large MP Potion    Heals 75 MP    Cost: 100 coins\n\n'
+                        options += ['5', '6', 'largehealth', 'largemp', 'largehealthpotion', 'largemppotion']
+                    if level >= 13:
+                        text += '7. Max Health Potion    Heals all health points    Cost: 175 coins\n'
+                        text += '8. Max MP Potion    Heals all MP    Cost: 175 coins\n'
+                        options += ['7', '8', 'maxhealth', 'maxmp', 'maxhealthpotion', 'maxmppotion']
+                    setTextOutput(text)
+                    playerButton['text'] = 'Submit'
+                    await at.event(playerButton, '<Button>')
+                    answer = grabText()
+                    if options.__contains__(answer):
+                        coins = playerData['money']
+                        if answer.__contains__('smallhealth') or answer == '1':
+                            if coins >= 10:
+                                text = 'You purchased a small health potion.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                playerData['money'] -= 10
+                                playerData['inventory']['small_health_potions'] += 1
+                                saveData()
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough coins.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if answer.__contains__('smallmp') or answer == '2':
+                            if coins >= 10:
+                                text = 'You purchased a small MP potion.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                playerData['money'] -= 10
+                                playerData['inventory']['small_mp_potions'] += 1
+                                saveData()
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough coins.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if answer.__contains__('mediumhealth') or answer == '3':
+                            if coins >= 55:
+                                text = 'You purchased a medium health potion.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                playerData['money'] -= 55
+                                playerData['inventory']['medium_health_potions'] += 1
+                                saveData()
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough coins.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if answer.__contains__('mediummp') or answer == '4':
+                            if coins >= 55:
+                                text = 'You purchased a medium MP potion.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                playerData['money'] -= 55
+                                playerData['inventory']['medium_mp_potions'] += 1
+                                saveData()
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough coins.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if answer.__contains__('largehealth') or answer == '5':
+                            if coins >= 100:
+                                text = 'You purchased a large health potion.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                playerData['money'] -= 100
+                                playerData['inventory']['large_health_potions'] += 1
+                                saveData()
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough coins.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if answer.__contains__('largemp') or answer == '6':
+                            if coins >= 100:
+                                text = 'You purchased a large MP potion.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                playerData['money'] -= 100
+                                playerData['inventory']['large_mp_potions'] += 1
+                                saveData()
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough coins.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if answer.__contains__('maxhealth') or answer == '7':
+                            if coins >= 175:
+                                text = 'You purchased a max health potion.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                playerData['money'] -= 175
+                                playerData['inventory']['max_health_potions'] += 1
+                                saveData()
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough coins.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
+                        if answer.__contains__('maxmp') or answer == '8':
+                            if coins >= 175:
+                                text = 'You purchased a max MP potion.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                playerData['money'] -= 175
+                                playerData['inventory']['max_mp_potions'] += 1
+                                saveData()
+                                at.start(gameLoop())
+                            else:
+                                text = 'You do not have enough coins.'
+                                setTextOutput(text)
+                                playerButton['text'] = 'Next'
+                                await at.event(playerButton, '<Button>')
+                                at.start(shop())
                     else:
-                        text = 'You do not have enough coins.'
+                        text = 'That is not an answer.'
                         setTextOutput(text)
                         playerButton['text'] = 'Next'
                         await at.event(playerButton, '<Button>')
                         at.start(shop())
-                if answer.__contains__('smallmp') or answer == '2':
-                    if coins >= 10:
-                        text = 'You purchased a small MP potion.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['money'] -= 10
-                        playerData['inventory']['small_mp_potions'] += 1
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
-                if answer.__contains__('mediumhealth') or answer == '3':
-                    if coins >= 55:
-                        text = 'You purchased a medium health potion.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['money'] -= 55
-                        playerData['inventory']['medium_health_potions'] += 1
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
-                if answer.__contains__('mediummp') or answer == '4':
-                    if coins >= 55:
-                        text = 'You purchased a medium MP potion.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['money'] -= 55
-                        playerData['inventory']['medium_mp_potions'] += 1
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
-                if answer.__contains__('largehealth') or answer == '5':
-                    if coins >= 100:
-                        text = 'You purchased a large health potion.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['money'] -= 100
-                        playerData['inventory']['large_health_potions'] += 1
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
-                if answer.__contains__('largemp') or answer == '6':
-                    if coins >= 100:
-                        text = 'You purchased a large MP potion.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['money'] -= 100
-                        playerData['inventory']['large_mp_potions'] += 1
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
-                if answer.__contains__('maxhealth') or answer == '7':
-                    if coins >= 175:
-                        text = 'You purchased a max health potion.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['money'] -= 175
-                        playerData['inventory']['max_health_potions'] += 1
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
-                if answer.__contains__('maxmp') or answer == '8':
-                    if coins >= 175:
-                        text = 'You purchased a max MP potion.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['money'] -= 175
-                        playerData['inventory']['max_mp_potions'] += 1
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
+                if answer == 'materials' or answer == '2':
+                    text = 'What materials would you like to buy.\n'
+                    text += '1. Wood    2 coins\n'
+                    text += '2. Stone    3 coins\n'
+                    options += ['1', '2', 'wood', 'stone']
+                    if level >= 5:
+                        text += '3. Iron Ore    10 coins\n'
+                        text += '4. Gold Ore    15 coins\n'
+                        options += ['3', '4', 'ironore', 'goldore']
+                    if level >= 8:
+                        text += '5. Iron    20 coins\n'
+                        text += '6. Gold    30 coins'
+                        options += ['5', '6', 'iron', 'gold']
+                    setTextOutput(text)
+                    playerButton['text'] = 'Submit'
+                    await at.event(playerButton, '<Button>')
             else:
-                text = 'That is not an answer.'
+                text = 'That is not something you can buy.'
                 setTextOutput(text)
                 playerButton['text'] = 'Next'
                 await at.event(playerButton, '<Button>')
@@ -924,7 +957,7 @@ async def shop():
                         await at.event(playerButton, '<Button>')
                         at.start(shop())
             else:
-                text = 'That is not an answer.'
+                text = 'That is not something you can sell.'
                 setTextOutput(text)
                 playerButton['text'] = 'Next'
                 await at.event(playerButton, '<Button>')
@@ -943,7 +976,16 @@ async def smelt():
     # Smelt iron and gold ore to make bars.
     global playerData
 
-    text = 'Welcome to the blacksmiths.'
+    text = 'Welcome to the blacksmiths.\n'
+    text += 'What would you like to smelt?\n\n'
+    text += '1. Iron    Requires: 1 iron ore, 1 wood\n'
+    text += '2. Gold    Requires: 1 gold ore, 2 wood\n'
+    options = ['1', '2', 'iron', 'gold']
+    playerButton['text'] = 'Submit'
+    await at.event(playerButton, '<Button>')
+    item = grabText()
+    if options.__contains__(item):
+        text = 'How much would you like to make?'
     setTextOutput(text)
 
 
@@ -995,9 +1037,11 @@ def updatePlayerStats():
     playerStatsOutput.delete(0.0, END)
     playerEquipOutput.delete(0.0, END)
 
+    exp_needed = math.floor(50*(playerData['level'] ** 1.2))
+
     statsText = 'Name: ' + playerData['name'] + '\n'
     statsText += 'Level: ' + str(playerData['level']) + '\n'
-    statsText += 'Exp: ' + str(playerData['exp']) + '\n'
+    statsText += 'Exp: ' + str(playerData['exp']) + ' /  ' + str(exp_needed) + '\n'
     statsText += 'Health: ' + str(playerData['health']) + ' / ' + str(playerData['health_max']) + '\n'
     statsText += 'MP: ' + str(playerData['mp']) + ' / ' + str(playerData['mp_max']) + '\n'
     statsText += 'Wood: ' + str(playerData['wood']) + '\n'
