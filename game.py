@@ -623,6 +623,7 @@ async def heal():
 
 
 async def fight():
+    # TODO Fight
     global playerData
 
     text = 'You start to fight an enemy.'
@@ -1148,6 +1149,10 @@ async def smelt():
                     at.start(smelt())
     else:
         text = 'That is not something you can make.'
+        setTextOutput(text)
+        playerButton['text'] = 'Next'
+        await at.event(playerButton, '<Button>')
+        at.start(smelt())
 
 
 async def travel():
@@ -1157,7 +1162,7 @@ async def travel():
 
     text = 'Where would you like to go?\n\n'
     text += '1. Green Field\n'
-    options = ['greenfield', '1']
+    options = ['greenfield', '1', 'back', 'exit']
     if level >= 5:
         text += '2. Deep Forest\n'
         options += ['deepforest', '2']
@@ -1167,10 +1172,35 @@ async def travel():
     if level > 13:
         text += '4. Lava Cave\n'
         options += ['lavacave', '4']
+    if level > 18:
+        text += '5.Sky City\n'
+        options += ['skycity', '5']
     setTextOutput(text)
+    playerButton['text'] = 'Submit'
+    await at.event(playerButton, '<Button>')
+    answer = grabText()
+    if options.__contains__(answer):
+        if answer == 'exit' or answer == 'back':
+            at.start(gameLoop())
+        else:
+            text = 'Travelling to '
+            if answer == 'greenfield' or answer == '1':
+                text += 'Green Field...'
+                playerData['world'] = 'Green Field'
+            if answer == 'deepforest' or answer == '2':
+                text += 'Deep Forest...'
+                playerData['world'] = 'Deep Forest'
+
+    else:
+        text = 'That place does not exist.'
+        setTextOutput(text)
+        playerButton['text'] = 'Next'
+        await at.event(playerButton, '<Button>')
+        at.start(travel())
 
 
 async def quests():
+    # TODO Quests
     # Gives player new quests
     # Player gets rewards for completing quests
     global playerData
@@ -1180,6 +1210,7 @@ async def quests():
 
 
 async def dojo():
+    # TODO Dojo
     # Allows player to upgrade moves
     global playerData
 
@@ -1188,6 +1219,7 @@ async def dojo():
 
 
 async def enchant():
+    # TODO Enchant
     # Allows player to enchant weapons and armor to make them stronger
     global playerData
 
@@ -1226,8 +1258,8 @@ def updatePlayerStats():
     equipText = 'Class: ' + playerData['type_class'].capitalize()
     equipText += '\nWeapon: ' + playerData['weapon'].capitalize()
     equipText += '\nArmor: ' + playerData['armor'].capitalize()
-    equipText += '\nWorld: ' + playerData['world'].capitalize()
-    equipText += '\nCurrent Quest: ' + playerData['current_quest'].capitalize()
+    equipText += '\nWorld: ' + playerData['world']
+    equipText += '\nCurrent Quest: ' + playerData['current_quest']
 
     playerStatsOutput.insert(END, statsText)
     playerEquipOutput.insert(END, equipText)
@@ -1267,6 +1299,7 @@ def saveData():
         f.write('saveThree = ' + str(playerData) + '\n')
         f.write('settings = ' + str(pd.settings))
     f.close()
+    # TODO Save Enemy Data
 
 
 def exitGame():
