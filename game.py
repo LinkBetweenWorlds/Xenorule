@@ -1190,6 +1190,20 @@ async def travel():
             if answer == 'deepforest' or answer == '2':
                 text += 'Deep Forest...'
                 playerData['world'] = 'Deep Forest'
+            if answer == 'iceplain' or answer == '3':
+                text += 'Ice Plain...'
+                playerData['world'] = ' Ice Plain'
+            if answer == 'lavacave' or answer == '4':
+                text += 'Lava Cave...'
+                playerData['world'] = 'Lava Cave'
+            if answer == 'skycity' or answer == '5':
+                text += 'Sky City...'
+                playerData['world'] = 'Sky City'
+            setTextOutput(text)
+            playerButton['text'] = 'Next'
+            await at.event(playerButton, '<Button>')
+            saveData()
+            at.start(gameLoop())
 
     else:
         text = 'That place does not exist.'
