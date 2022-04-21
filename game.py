@@ -84,6 +84,8 @@ async def newGame():
     playerData['health_max'] = 10
     playerData['mp'] = 5
     playerData['mp_max'] = 5
+    playerData['damage'] = 1
+    playerData['defense'] = 0
     playerData['wood'] = 0
     playerData['stone'] = 0
     playerData['iron_ore'] = 0
@@ -639,7 +641,7 @@ async def shop():
     text += 'What would you like to do?\n\n'
     text += '1. Buy\n'
     options = ['back', 'exit', 'buy', '1']
-    if level >= 5:
+    if level >= 6:
         text += '2. Sell\n'
         options += ['sell', '2']
     setTextOutput(text)
@@ -670,7 +672,7 @@ async def shop():
                         text += '5. Large Health Potion    Heals 75 health points    Cost: 100 coins\n'
                         text += '6. Large MP Potion    Heals 75 MP    Cost: 100 coins\n\n'
                         options += ['5', '6', 'largehealth', 'largemp', 'largehealthpotion', 'largemppotion']
-                    if level >= 13:
+                    if level >= 14:
                         text += '7. Max Health Potion    Heals all health points    Cost: 175 coins\n'
                         text += '8. Max MP Potion    Heals all MP    Cost: 175 coins\n'
                         options += ['7', '8', 'maxhealth', 'maxmp', 'maxhealthpotion', 'maxmppotion']
@@ -819,7 +821,7 @@ async def shop():
                     text += '1. Wood    2 coins\n'
                     text += '2. Stone    3 coins\n'
                     options += ['1', '2', 'wood', 'stone']
-                    if level >= 5:
+                    if level >= 6:
                         text += '3. Iron Ore    10 coins\n'
                         text += '4. Gold Ore    15 coins\n'
                         options += ['3', '4', 'ironore', 'goldore']
@@ -1169,12 +1171,15 @@ async def travel():
     if level >= 9:
         text += '3. Ice Plain\n'
         options += ['iceplain', '3']
-    if level > 13:
+    if level >= 13:
         text += '4. Lava Cave\n'
         options += ['lavacave', '4']
-    if level > 18:
+    if level >= 18:
         text += '5.Sky City\n'
         options += ['skycity', '5']
+    if level >= 24:
+        text += '6. Dark Descent\n'
+        options += ['darkdescent', '6']
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
@@ -1199,6 +1204,9 @@ async def travel():
             if answer == 'skycity' or answer == '5':
                 text += 'Sky City...'
                 playerData['world'] = 'Sky City'
+            if answer == 'darkdescent' or answer == '6':
+                text += 'Dark Descent...'
+                playerData['world'] = 'Dark Descent'
             setTextOutput(text)
             playerButton['text'] = 'Next'
             await at.event(playerButton, '<Button>')
@@ -1239,6 +1247,45 @@ async def enchant():
 
     text = 'What would you like to enchant?'
     setTextOutput(text)
+
+
+async def checkLevelup():
+    global playerData
+
+    exp_needed = math.floor(50*(playerData['level'] ** 1.2))
+
+    if playerData['exp'] >= exp_needed:
+        playerData['level'] += 1
+        level = playerData['level']
+        text = 'You level up to level' + str(level) + '\n'
+        if level == 3:
+            text += 'You have unlocked the shop.\n'
+        if level == 4:
+            text += 'You can now buy medium potions in the shop.\n'
+        if level == 5:
+            text += 'You have unlocked the blacksmiths.\n'
+            text += 'You can now travel to the deep forest.\n'
+        if level == 6:
+            text += 'You can now sell things in the shop.\n'
+            text += 'You can now buy ore from the shop.\n'
+        if level == 9:
+            text += 'You can now buy large potions at the shop.\n'
+            text += 'You can now travel to the ice plain.\n'
+        if level == 13:
+            text += 'You can now travel to the lava cave.\n'
+        if level == 14:
+            text += 'You can now buy max potions at the shop.\n'
+        if level == 18:
+            text += 'You can now travel to the sky city.\n'
+        if level == 24:
+            text += 'You can now travel to the dark descent.\n'
+        # TODO Finish adding level up unlocks.
+        text += 'You you like to upgrade damage or defense?\n'
+        setTextOutput(text)
+        playerButton['text'] = 'Submit'
+        await at.event(playerButton, '<Button>')
+        answer = grabText()
+        # TODO Add option to upgrade damage or defense.
 
 
 def setTextOutput(text):
