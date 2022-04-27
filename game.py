@@ -1,10 +1,13 @@
+import json
 import math
+import os.path
 import random
 from tkinter import *
 from PIL import Image, ImageTk
 from saveData import player_data as pd
 import asynctkinter as at
 import vlc
+import setupGameData
 
 # Setup game window
 window = Tk()
@@ -33,11 +36,7 @@ playerData = {}
 
 
 async def startGame():
-    bgMusic = vlc.MediaPlayer('sounds/Daredevil.mp3')
-    if pd.settings['backgroundMusic']:
-        bgMusic.play()
-    else:
-        bgMusic.stop()
+    startGameData()
     text = 'Welcome to Xenorule!\n'
     text += 'What would you like to do?\n\n'
     text += '1. Play\n'
@@ -49,6 +48,7 @@ async def startGame():
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
+    loadData()
     answer = grabText()
     if options.__contains__(answer):
         if answer == 'play' or answer == '1':
@@ -119,19 +119,20 @@ async def newGame():
 
 
 async def playerSelect():
+    loadData()
     global playerData
     global slotNumber
     text = 'What save would you like to use?\n'
-    text += '1. ' + pd.saveOne['name'] + '\n'
-    text += '2. ' + pd.saveTwo['name'] + '\n'
-    text += '3. ' + pd.saveThree['name'] + '\n'
+    text += '1. ' + saveOne['name'] + '\n'
+    text += '2. ' + saveTwo['name'] + '\n'
+    text += '3. ' + saveThree['name'] + '\n'
     text += 'Answer: 1, 2, 3'
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
     answer = grabText()
     if answer == 'one' or answer == '1':
-        playerData = pd.saveOne
+        playerData = saveOne
         slotNumber = 1
         if playerData['name'] == 'Empty':
             at.start(newGame())
@@ -141,7 +142,7 @@ async def playerSelect():
             else:
                 at.start(gameLoop())
     elif answer == 'two' or answer == '2':
-        playerData = pd.saveTwo
+        playerData = saveTwo
         slotNumber = 2
         if playerData['name'] == 'Empty':
             at.start(newGame())
@@ -151,7 +152,7 @@ async def playerSelect():
             else:
                 at.start(gameLoop())
     elif answer == 'three' or answer == '3':
-        playerData = pd.saveThree
+        playerData = saveThree
         slotNumber = 3
         if playerData['name'] == 'Empty':
             at.start(newGame())
@@ -1335,32 +1336,113 @@ def grabText():
     return answer
 
 
+def startGameData():
+    global settingsData
+    global battleData
+
+    if os.path.exists('gameData/settings.json') and os.path.exists('playerData/saveOneData.json'):
+        return
+    else:
+        os.makedirs('./gameData')
+        os.makedirs('./playerData')
+        setupGameData.saveEnemyData()
+        playerSave = {'name': 'Empty', 'level': 0, 'exp': 0, 'type_class': 'none'}
+        settingsData = {'backgroundMusic': False, 'soundFX': False}
+        battleData = {'current_enemy': 'none', 'currently_fighting': False, 'current_enemy_health': 0, 'turn_count': 0}
+        playerSaveJson = json.dumps(playerSave)
+        saveSettingsJson = json.dumps(settingsData)
+        battleDataJson = json.dumps(battleData)
+        with open('playerData/saveOneData.json', 'w') as outfile:
+            json.dump(playerSaveJson, outfile)
+        with open('playerData/saveTwoData.json', 'w') as outfile:
+            json.dump(playerSaveJson, outfile)
+        with open('playerData/saveThreeData.json', 'w') as outfile:
+            json.dump(playerSaveJson, outfile)
+        with open('gameData/settings.json', 'w') as outfile:
+            json.dump(saveSettingsJson, outfile)
+        with open('gameData/battleData.json', 'w') as outfile:
+            json.dump(battleDataJson, outfile)
+        return
+
+
 def saveData():
     global playerData
     global slotNumber
+    global settingsData
+    global battleData
+
+    if slotNumber == 1:
+        with open('playerData/saveOneData.json', 'w') as outfile:
+            saveJson = json.dumps(playerData)
+            json.dump(saveJson, outfile)
+    if slotNumber == 2:
+        with open('playerData/saveTwoData.json', 'w') as outfile:
+            saveJson = json.dumps(playerData)
+            json.dump(saveJson, outfile)
+    if slotNumber == 3:
+        with open('playerData/saveThreeData.json', 'w') as outfile:
+            saveJson = json.dumps(playerData)
+            json.dump(saveJson, outfile)
+
+    with open('gameData/settings.json', 'w') as outfile:
+        saveJson = json.dumps(settingsData)
+        json.dump(saveJson, outfile)
+    with open('gameData/battleData.json', 'w') as outfile:
+        saveJson = json.dumps(battleData)
+        json.dump(saveJson, outfile)
     f = open('saveData/player_data.py', 'w')
     if slotNumber == 0:
         f.write('saveOne = ' + str(pd.saveOne) + '\n')
         f.write('saveTwo = ' + str(pd.saveTwo) + '\n')
         f.write('saveThree = ' + str(pd.saveThree) + '\n')
-        f.write('settings = ' + str(pd.settings))
     if slotNumber == 1:
         f.write('saveOne = ' + str(playerData) + '\n')
         f.write('saveTwo = ' + str(pd.saveTwo) + '\n')
         f.write('saveThree = ' + str(pd.saveThree) + '\n')
-        f.write('settings = ' + str(pd.settings))
     if slotNumber == 2:
         f.write('saveOne = ' + str(pd.saveOne) + '\n')
         f.write('saveTwo = ' + str(playerData) + '\n')
         f.write('saveThree = ' + str(pd.saveThree) + '\n')
-        f.write('settings = ' + str(pd.settings))
     if slotNumber == 3:
         f.write('saveOne = ' + str(pd.saveOne) + '\n')
         f.write('saveTwo = ' + str(pd.saveTwo) + '\n')
         f.write('saveThree = ' + str(playerData) + '\n')
-        f.write('settings = ' + str(pd.settings))
+    f.write('settings = ' + str(pd.settings) + '\n')
+    f.write('battleData = ' + str(pd.battleData))
     f.close()
-    # TODO Save Enemy Data
+
+
+def loadData():
+    global settingsData
+    global battleData
+    global enemyData
+    global saveOne
+    global saveTwo
+    global saveThree
+
+    with open('gameData/settings.json') as json_file:
+        data = json.load(json_file)
+        settingsData = json.loads(data)
+
+    with open('gameData/battleData.json') as json_file:
+        data = json.load(json_file)
+        battleData = json.loads(data)
+
+    with open('gameData/enemyData.json') as json_file:
+        data = json.load(json_file)
+        enemyData = json.loads(data)
+
+    with open('playerData/saveOneData.json') as json_file:
+        data = json.load(json_file)
+        saveOne = json.loads(data)
+
+    with open('playerData/saveTwoData.json') as json_file:
+        data = json.load(json_file)
+        saveTwo = json.loads(data)
+
+    with open('playerData/saveThreeData.json') as json_file:
+        data = json.load(json_file)
+        saveThree = json.loads(data)
 
 
 def exitGame():
