@@ -1,13 +1,9 @@
 import json
 import math
-import os.path
 import random
 from tkinter import *
 from PIL import Image, ImageTk
-from saveData import player_data as pd
 import asynctkinter as at
-import vlc
-import setupGameData
 
 # Setup game window
 window = Tk()
@@ -36,7 +32,6 @@ playerData = {}
 
 
 async def startGame():
-    startGameData()
     text = 'Welcome to Xenorule!\n'
     text += 'What would you like to do?\n\n'
     text += '1. Play\n'
@@ -54,7 +49,6 @@ async def startGame():
         if answer == 'play' or answer == '1':
             at.start(playerSelect())
         if answer == 'erase' or answer == '2':
-            print('Erase')
             at.start(erasePlayer())
         if answer == 'settings' or answer == '3':
             at.start(settings())
@@ -170,10 +164,11 @@ async def playerSelect():
 
 
 async def settings():
+    global settingsData
     print('Settings')
     text = 'Settings\n'
-    text += '1. Background Music: ' + str(pd.settings['backgroundMusic']) + '\n'
-    text += '2. Sound FX: ' + str(pd.settings['soundFX']) + '\n'
+    text += '1. Background Music: ' + str(settingsData['backgroundMusic']) + '\n'
+    text += '2. Sound FX: ' + str(settingsData['soundFX']) + '\n'
     text += '3. Back\n'
     text += 'What settings would you like to change. (1, 2, 3)'
     setTextOutput(text)
@@ -183,11 +178,11 @@ async def settings():
     answer = grabText()
     if options.__contains__(answer):
         if answer == '1':
-            pd.settings['backgroundMusic'] = not pd.settings['backgroundMusic']
+            settingsData['backgroundMusic'] = not settingsData['backgroundMusic']
             saveData()
             at.start(settings())
         if answer == '2':
-            pd.settings['soundFX'] = not pd.settings['soundFX']
+            settingsData['soundFX'] = not settingsData['soundFX']
             saveData()
             at.start(settings())
         if answer == '3':
@@ -247,7 +242,10 @@ async def chooseClass():
 
 
 async def erasePlayer():
-    if pd.saveOne['name'] == 'Empty' and pd.saveTwo['name'] == 'Empty' and pd.saveThree['name'] == 'Empty':
+    global saveOne
+    global saveTwo
+    global saveThree
+    if saveOne['name'] == 'Empty' and saveTwo['name'] == 'Empty' and saveThree['name'] == 'Empty':
         text = 'You do not have any slots to erase.'
         setTextOutput(text)
         playerButton['text'] = 'Next'
@@ -256,14 +254,14 @@ async def erasePlayer():
     else:
         text = 'Which slot would you like to erase?\n'
         options = ['exit']
-        if pd.saveOne['name'] != 'Empty':
-            text += '1. ' + pd.saveOne['name'] + '\n'
+        if saveOne['name'] != 'Empty':
+            text += '1. ' + saveOne['name'] + '\n'
             options += ['1']
-        if pd.saveTwo['name'] != 'Empty':
-            text += '2. ' + pd.saveTwo['name'] + '\n'
+        if saveTwo['name'] != 'Empty':
+            text += '2. ' + saveTwo['name'] + '\n'
             options += ['2']
-        if pd.saveThree['name'] != 'Empty':
-            text += '3. ' + pd.saveThree['name'] + '\n'
+        if saveThree['name'] != 'Empty':
+            text += '3. ' + saveThree['name'] + '\n'
             options += ['3']
         text += 'Options: 1, 2, 3, exit'
         setTextOutput(text)
@@ -284,16 +282,8 @@ async def erasePlayer():
                 options = ['yes', 'no']
                 if options.__contains__(answer):
                     if answer == 'yes':
-                        if eraseSlot == '1':
-                            pd.saveOne['name'] = 'Empty'
-                            pd.saveOne['type_class'] = 'none'
-                        if eraseSlot == '2':
-                            pd.saveTwo['name'] = 'Empty'
-                            pd.saveTwo['type_class'] = 'none'
-                        if eraseSlot == '2':
-                            pd.saveThree['name'] = 'Empty'
-                            pd.saveThree['type_class'] = 'none'
-                        saveData()
+                        erasePlayerData(eraseSlot)
+                        # await at.sleep(500, after=playerButton.after)
                         text = 'Save slot erased.'
                         setTextOutput(text)
                         playerButton['text'] = 'Next'
@@ -1256,8 +1246,7 @@ async def checkLevelup():
     exp_needed = math.floor(50*(playerData['level'] ** 1.2))
 
     if playerData['exp'] >= exp_needed:
-        playerData['level'] += 1
-        level = playerData['level']
+        level = playerData['level'] + 1
         text = 'You level up to level' + str(level) + '\n'
         if level == 3:
             text += 'You have unlocked the shop.\n'
@@ -1281,12 +1270,29 @@ async def checkLevelup():
         if level == 24:
             text += 'You can now travel to the dark descent.\n'
         # TODO Finish adding level up unlocks.
-        text += 'You you like to upgrade damage or defense?\n'
+        text += '\nWould you like to upgrade.\n'
+        text += '1. Attack    Increase attack power by 1.\n'
+        text += '2. Defense    Increase defense by 1.\n'
+        options = ['1', '2', 'attack', 'defense']
         setTextOutput(text)
         playerButton['text'] = 'Submit'
         await at.event(playerButton, '<Button>')
         answer = grabText()
         # TODO Add option to upgrade damage or defense.
+        if options.__contains__(answer):
+            playerData['level'] += 1
+            if answer == '1' or answer == 'attack':
+                text = 'You got +1 attack.\n'
+                text += 'All your attacks will now deal one extra damage.'
+            if answer == '2' or answer == 'defense':
+                text = 'You got +1 defense.\n'
+                text += 'You will now take one less damage from attacks.'
+        else:
+            text = 'That is not an answer.'
+            setTextOutput(text)
+            playerButton['text'] = 'Next'
+            await at.event(playerButton, '<Button>')
+            at.start(checkLevelup())
 
 
 def setTextOutput(text):
@@ -1336,35 +1342,6 @@ def grabText():
     return answer
 
 
-def startGameData():
-    global settingsData
-    global battleData
-
-    if os.path.exists('gameData/settings.json') and os.path.exists('playerData/saveOneData.json'):
-        return
-    else:
-        os.makedirs('./gameData')
-        os.makedirs('./playerData')
-        setupGameData.saveEnemyData()
-        playerSave = {'name': 'Empty', 'level': 0, 'exp': 0, 'type_class': 'none'}
-        settingsData = {'backgroundMusic': False, 'soundFX': False}
-        battleData = {'current_enemy': 'none', 'currently_fighting': False, 'current_enemy_health': 0, 'turn_count': 0}
-        playerSaveJson = json.dumps(playerSave)
-        saveSettingsJson = json.dumps(settingsData)
-        battleDataJson = json.dumps(battleData)
-        with open('playerData/saveOneData.json', 'w') as outfile:
-            json.dump(playerSaveJson, outfile)
-        with open('playerData/saveTwoData.json', 'w') as outfile:
-            json.dump(playerSaveJson, outfile)
-        with open('playerData/saveThreeData.json', 'w') as outfile:
-            json.dump(playerSaveJson, outfile)
-        with open('gameData/settings.json', 'w') as outfile:
-            json.dump(saveSettingsJson, outfile)
-        with open('gameData/battleData.json', 'w') as outfile:
-            json.dump(battleDataJson, outfile)
-        return
-
-
 def saveData():
     global playerData
     global slotNumber
@@ -1390,26 +1367,6 @@ def saveData():
     with open('gameData/battleData.json', 'w') as outfile:
         saveJson = json.dumps(battleData)
         json.dump(saveJson, outfile)
-    f = open('saveData/player_data.py', 'w')
-    if slotNumber == 0:
-        f.write('saveOne = ' + str(pd.saveOne) + '\n')
-        f.write('saveTwo = ' + str(pd.saveTwo) + '\n')
-        f.write('saveThree = ' + str(pd.saveThree) + '\n')
-    if slotNumber == 1:
-        f.write('saveOne = ' + str(playerData) + '\n')
-        f.write('saveTwo = ' + str(pd.saveTwo) + '\n')
-        f.write('saveThree = ' + str(pd.saveThree) + '\n')
-    if slotNumber == 2:
-        f.write('saveOne = ' + str(pd.saveOne) + '\n')
-        f.write('saveTwo = ' + str(playerData) + '\n')
-        f.write('saveThree = ' + str(pd.saveThree) + '\n')
-    if slotNumber == 3:
-        f.write('saveOne = ' + str(pd.saveOne) + '\n')
-        f.write('saveTwo = ' + str(pd.saveTwo) + '\n')
-        f.write('saveThree = ' + str(playerData) + '\n')
-    f.write('settings = ' + str(pd.settings) + '\n')
-    f.write('battleData = ' + str(pd.battleData))
-    f.close()
 
 
 def loadData():
@@ -1443,6 +1400,21 @@ def loadData():
     with open('playerData/saveThreeData.json') as json_file:
         data = json.load(json_file)
         saveThree = json.loads(data)
+
+
+def erasePlayerData(slot):
+    saveOverride = {'name': 'Empty', 'type_class': 'none', 'level': 0, 'exp': 0}
+    saveOverrideJson = json.dumps(saveOverride)
+
+    if slot == '1':
+        with open('playerData/saveOneData.json', 'w') as outfile:
+            json.dump(saveOverrideJson, outfile)
+    if slot == '2':
+        with open('playerData/saveTwoData.json', 'w') as outfile:
+            json.dump(saveOverrideJson, outfile)
+    if slot == '3':
+        with open('playerData/saveThreeData.json', 'w') as outfile:
+            json.dump(saveOverrideJson, outfile)
 
 
 def exitGame():
