@@ -1,3 +1,4 @@
+import asyncio
 import json
 import math
 import random
@@ -32,6 +33,7 @@ playerData = {}
 
 
 async def startGame():
+    loadData()
     text = 'Welcome to Xenorule!\n'
     text += 'What would you like to do?\n\n'
     text += '1. Play\n'
@@ -43,7 +45,6 @@ async def startGame():
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
-    loadData()
     answer = grabText()
     if options.__contains__(answer):
         if answer == 'play' or answer == '1':
@@ -80,6 +81,10 @@ async def newGame():
     playerData['mp_max'] = 5
     playerData['damage'] = 1
     playerData['defense'] = 0
+    playerData['attacks'] = {
+        'attack_list': [],
+        'attack_damage': []
+    }
     playerData['wood'] = 0
     playerData['stone'] = 0
     playerData['iron_ore'] = 0
@@ -197,6 +202,7 @@ async def settings():
 
 async def chooseClass():
     global playerData
+    global attackData
 
     text = 'What class would you like to be?\n'
     text += '1. Mage: Casts powerful spells to defeat their enemies.\n'
@@ -216,6 +222,7 @@ async def chooseClass():
             playerData['type_class'] = 'mage'
             playerData['weapon'] = 'wand'
             playerData['weapon_inventory'].append(playerData['weapon'])
+            playerData['attacks']['attack_list'].append(attackData['mage_attack_list']['attack'])
         if answer == 'paladin' or answer == '2':
             text = 'You have selected paladin class.\n'
             text += 'You received a sword.'
@@ -223,6 +230,7 @@ async def chooseClass():
             playerData['type_class'] = 'paladin'
             playerData['weapon'] = 'sword'
             playerData['weapon_inventory'].append(playerData['weapon'])
+            playerData['attacks']['attack_list'].append(attackData['paladin_attack_list']['attack'])
         if answer == 'archer' or answer == '3':
             text = 'You are now an archer.\n'
             text += 'You got a bow.'
@@ -230,6 +238,7 @@ async def chooseClass():
             playerData['type_class'] = 'archer'
             playerData['weapon'] = 'bow'
             playerData['weapon_inventory'].append(playerData['weapon'])
+            playerData['attacks']['attack_list'].append(attackData['archer_attack_list']['attack'])
         await at.event(playerButton, '<Button>')
         saveData()
         at.start(playerSelect())
@@ -619,7 +628,10 @@ async def fight():
     # TODO Fight
     global playerData
 
-    text = 'You start to fight an enemy.'
+    attacks = playerData['attacks']['attack_list']
+
+    text = 'You start to fight an enemy.\n\n'
+    text += '1. ' + str(attacks[0]['name']) + ' MP: ' + str(attacks[0]['mp_cost'])
     setTextOutput(text)
 
 
@@ -1368,11 +1380,14 @@ def saveData():
         saveJson = json.dumps(battleData)
         json.dump(saveJson, outfile)
 
+    print('Saved Data')
+
 
 def loadData():
     global settingsData
     global battleData
     global enemyData
+    global attackData
     global saveOne
     global saveTwo
     global saveThree
@@ -1388,6 +1403,10 @@ def loadData():
     with open('gameData/enemyData.json') as json_file:
         data = json.load(json_file)
         enemyData = json.loads(data)
+
+    with open('gameData/attackData.json') as json_file:
+        data = json.load(json_file)
+        attackData = json.loads(data)
 
     with open('playerData/saveOneData.json') as json_file:
         data = json.load(json_file)

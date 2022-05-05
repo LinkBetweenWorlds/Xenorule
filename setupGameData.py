@@ -1,30 +1,43 @@
 import json
 
 
-def resetPlayerData():
-    playerSave = {'name': 'Empty', 'level': 0, 'exp': 0, 'type_class': 'none'}
-    playerSaveJson = json.dumps(playerSave)
+def playerDataUpdate():
+    saveOverride = {'name': 'Empty', 'type_class': 'none', 'level': 0, 'exp': 0}
+    saveOverrideJson = json.dumps(saveOverride)
+
     with open('playerData/saveOneData.json', 'w') as outfile:
-        json.dump(playerSaveJson, outfile)
+        json.dump(saveOverrideJson, outfile)
     with open('playerData/saveTwoData.json', 'w') as outfile:
-        json.dump(playerSaveJson, outfile)
+        json.dump(saveOverrideJson, outfile)
     with open('playerData/saveThreeData.json', 'w') as outfile:
-        json.dump(playerSaveJson, outfile)
+        json.dump(saveOverrideJson, outfile)
 
 
-def saveGameData():
-
-    settingsData = {'backgroundMusic': False, 'soundFX': False}
-    battleData = {'current_enemy': 'none', 'currently_fighting': False, 'current_enemy_health': 0, 'turn_count': 0}
-
-    saveSettingsJson = json.dumps(settingsData)
-    battleDataJson = json.dumps(battleData)
+def settingsDataUpdate():
+    settings = {
+        'backgroundMusic': True,
+        'soundFX': True
+    }
 
     with open('gameData/settings.json', 'w') as outfile:
-        json.dump(saveSettingsJson, outfile)
+        settingsJson = json.dumps(settings)
+        json.dump(settingsJson, outfile)
+
+
+def battleDataUpdate():
+    battleData = {
+        'current_enemy': 'none',
+        'currently_fighting': 'none',
+        'current_enemy_health': 0,
+        'turn_count': 0
+    }
+
     with open('gameData/battleData.json', 'w') as outfile:
+        battleDataJson = json.dumps(battleData)
         json.dump(battleDataJson, outfile)
 
+
+def enemyDataUpdate():
     enemyList = {
         'Green Field': ['greenSlime', 'greenSlime', 'bat', 'bat', 'zombie'],
         'greenSlime': {
@@ -73,5 +86,40 @@ def saveGameData():
         json.dump(enemyDataJson, outfile)
 
 
-saveGameData()
-resetPlayerData()
+def attackDataUpdate():
+    attack_lists = {
+        'mage_attack_list': {
+            'attack': {
+                'name': 'Attack',
+                'damage': 1,
+                'element': 'normal',
+                'mp_cost': 0,
+                'piercing': False
+            }
+        },
+        'paladin_attack_list': {
+            'attack': {
+                'name': 'Attack',
+                'damage': 1,
+                'element': 'normal',
+                'mp_cost': 0,
+                'piercing': False
+            }
+        },
+        'archer_attack_list': {
+            'attack': {
+                'name': 'Attack',
+                'damage': 1,
+                'element': 'normal',
+                'mp_cost': 0,
+                'piercing': False
+            }
+        }
+    }
+
+
+    with open('gameData/attackData.json', 'w') as outfile:
+        attacksJson = json.dumps(attack_lists)
+        json.dump(attacksJson, outfile)
+
+attackDataUpdate()
