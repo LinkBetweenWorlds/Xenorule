@@ -630,6 +630,8 @@ async def fight():
 
     attacks = playerData['attacks']['attack_list']
 
+    for i in attacks:
+        print(attacks[i]['name'])
     text = 'You start to fight an enemy.\n\n'
     text += '1. ' + str(attacks[0]['name']) + ' MP: ' + str(attacks[0]['mp_cost'])
     setTextOutput(text)
