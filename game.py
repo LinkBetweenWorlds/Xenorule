@@ -1,4 +1,3 @@
-import asyncio
 import json
 import math
 import random
@@ -12,7 +11,7 @@ window.title('Xenorule')
 window.configure(background='black')
 window.geometry('1280x720')
 window.resizable(width=NO, height=NO)
-window.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('appicon.gif')))
+window.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('appicon.ico')))
 
 # Setup text box
 playerStatsOutput = Text(window, width=60, height=10, bg='black', fg='white', font='times 16')
@@ -170,34 +169,63 @@ async def playerSelect():
 
 async def settings():
     global settingsData
-    print('Settings')
     text = 'Settings\n'
     text += '1. Background Music: ' + str(settingsData['backgroundMusic']) + '\n'
     text += '2. Sound FX: ' + str(settingsData['soundFX']) + '\n'
+    text += '3. Screen Size\n'
     text += '3. Back\n'
-    text += 'What settings would you like to change. (1, 2, 3)'
+    text += 'What settings would you like to change. (1, 2, 3, 4)'
     setTextOutput(text)
-    options = ['1', '2', '3']
+    options = ['1', '2', '3', '4', 'backgroundmusic', 'soundfx', 'screensize', 'back']
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
     answer = grabText()
     if options.__contains__(answer):
-        if answer == '1':
+        if answer == '1' or answer == 'backgroundmusic':
             settingsData['backgroundMusic'] = not settingsData['backgroundMusic']
             saveData()
             at.start(settings())
-        if answer == '2':
+        if answer == '2' or answer == 'soundfx':
             settingsData['soundFX'] = not settingsData['soundFX']
             saveData()
             at.start(settings())
-        if answer == '3':
+        if answer == '3' or answer == 'screensize':
+            at.start(screenOptions())
+        if answer == '4' or answer == 'back':
             at.start(startGame())
     else:
-        text = 'That is not an options.'
+        text = 'That is not an option.'
         setTextOutput(text)
         playerButton['text'] = 'Next'
         await at.event(playerButton, '<Button>')
         at.start(settings())
+
+
+async def screenOptions():
+    # TODO work out how to do this
+    global settingsData
+    text = '1. Fullscreen: ' + str(settingsData['fullscreen']) + '\n'
+    text += '2. Screen Size: ' + str(settingsData['width']) + ' x ' + str(settingsData['height']) + '\n'
+    text += '3. Back'
+    setTextOutput(text)
+    options = ['1', '2', '3', 'fullscreen', 'screensize', 'back']
+    playerButton['text'] = 'Submit'
+    await at.event(playerButton, '<Button>')
+    answer = grabText()
+    if options.__contains__(answer):
+        if answer == '1' or answer == 'fullscreen':
+            settingsData['fullscreen'] = not settingsData['fullscreen']
+            window.attributes('-fullscreen', settingsData['fullscreen'])
+            saveData()
+            at.start(screenOptions())
+        if answer == '2' or answer == 'screensize':
+            screenSizeOptions = ['1980x1080', '1280x720']
+    else:
+        text = 'That is not an option.'
+        setTextOutput(text)
+        playerButton['text'] = 'Next'
+        await at.event(playerButton, '<Button>')
+        at.start(screenOptions())
 
 
 async def chooseClass():
@@ -223,6 +251,7 @@ async def chooseClass():
             playerData['weapon'] = 'wand'
             playerData['weapon_inventory'].append(playerData['weapon'])
             playerData['attacks']['attack_list'].append(attackData['mage_attack_list']['attack'])
+            playerData['attacks']['attack_list'].append(attackData['mage_attack_list']['fire_attack'])
         if answer == 'paladin' or answer == '2':
             text = 'You have selected paladin class.\n'
             text += 'You received a sword.'
@@ -630,11 +659,16 @@ async def fight():
 
     attacks = playerData['attacks']['attack_list']
 
-    for i in attacks:
-        print(attacks[i]['name'])
     text = 'You start to fight an enemy.\n\n'
-    text += '1. ' + str(attacks[0]['name']) + ' MP: ' + str(attacks[0]['mp_cost'])
+    options = []
+    num = 0
+    for i in attacks:
+        num += 1
+        text += str(num) + '. ' + i['name'] + '    MP: ' + str(i['mp_cost']) + '\n'
+        options += str(num)
+        options.append(i['name'])
     setTextOutput(text)
+    print(options)
 
 
 async def shop():
@@ -1137,7 +1171,7 @@ async def smelt():
                     at.start(smelt())
             if item == 'gold' or item == '2':
                 money_needed = 15 * int(answer)
-                if playerData['gold_ore'] >= int(answer) and playerData['wood'] >= (int(answer)*2) and playerData['money'] >= money_needed:
+                if playerData['gold_ore'] >= int(answer) and playerData['wood'] >= (int(answer) * 2) and playerData['money'] >= money_needed:
                     text = 'You made ' + answer + ' gold.'
                     setTextOutput(text)
                     playerButton['text'] = 'Next'
@@ -1257,7 +1291,7 @@ async def enchant():
 async def checkLevelup():
     global playerData
 
-    exp_needed = math.floor(50*(playerData['level'] ** 1.2))
+    exp_needed = math.floor(50 * (playerData['level'] ** 1.2))
 
     if playerData['exp'] >= exp_needed:
         level = playerData['level'] + 1
@@ -1324,7 +1358,7 @@ def updatePlayerStats():
     playerStatsOutput.delete(0.0, END)
     playerEquipOutput.delete(0.0, END)
 
-    exp_needed = math.floor(50*(playerData['level'] ** 1.2))
+    exp_needed = math.floor(50 * (playerData['level'] ** 1.2))
 
     statsText = 'Name: ' + playerData['name'] + '\n'
     statsText += 'Level: ' + str(playerData['level']) + '\n'
@@ -1381,8 +1415,6 @@ def saveData():
     with open('gameData/battleData.json', 'w') as outfile:
         saveJson = json.dumps(battleData)
         json.dump(saveJson, outfile)
-
-    print('Saved Data')
 
 
 def loadData():

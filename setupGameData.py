@@ -16,7 +16,10 @@ def playerDataUpdate():
 def settingsDataUpdate():
     settings = {
         'backgroundMusic': True,
-        'soundFX': True
+        'soundFX': True,
+        'fullscreen': True,
+        'width': 1280,
+        'height': 720
     }
 
     with open('gameData/settings.json', 'w') as outfile:
@@ -95,6 +98,13 @@ def attackDataUpdate():
                 'element': 'normal',
                 'mp_cost': 0,
                 'piercing': False
+            },
+            'fire_attack': {
+                'name': 'Fire Blast',
+                'damage': 2,
+                'element': 'fire',
+                'mp_cost': 1,
+                'piercing': False
             }
         },
         'paladin_attack_list': {
@@ -103,6 +113,13 @@ def attackDataUpdate():
                 'damage': 1,
                 'element': 'normal',
                 'mp_cost': 0,
+                'piercing': False
+            },
+            'fire_attack': {
+                'name': 'Fire Swing',
+                'damage': 2,
+                'element': 'fire',
+                'mp_cost': 1,
                 'piercing': False
             }
         },
@@ -113,6 +130,13 @@ def attackDataUpdate():
                 'element': 'normal',
                 'mp_cost': 0,
                 'piercing': False
+            },
+            'fire_attack': {
+                'name': 'Fire Bolt',
+                'damage': 2,
+                'element': 'fire',
+                'mp_cost': 1,
+                'piercing': False
             }
         }
     }
@@ -122,4 +146,11 @@ def attackDataUpdate():
         attacksJson = json.dumps(attack_lists)
         json.dump(attacksJson, outfile)
 
-attackDataUpdate()
+def allDataUpdate():
+    attackDataUpdate()
+    enemyDataUpdate()
+    playerDataUpdate()
+    battleDataUpdate()
+    settingsDataUpdate()
+
+settingsDataUpdate()

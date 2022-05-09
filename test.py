@@ -1,20 +1,51 @@
-import json
-import requests
+from tkinter import *
+from PIL import Image, ImageTk
+import asynctkinter as at
+
+window = Tk()
+window.title('Xenorule')
+window.configure(background='black')
+window.geometry('1280x720')
+window.resizable(width=NO, height=NO)
+window.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('appicon.ico')))
+window.attributes('-fullscreen', True)
+# window.state('zoomed')
+fullscreen = True
 
 
-saveOne = {'name': 'Blink', 'level': 16, 'exp': 0, 'type_class': 'mage', 'health': 10, 'health_max': 10, 'mp': 5,
-           'mp_max': 5, 'damage': 1, 'defense': 0, 'wood': 147, 'stone': 233, 'iron_ore': 0, 'iron': 80, 'gold_ore': 95,
-           'gold': 0, 'money': 2640, 'weapon': 'wand', 'weapon_inventory': ['wand'], 'armor': 'none',
-           'armor_inventory': [],
-           'inventory': {'small_health_potions': 3, 'medium_health_potions': 3, 'large_health_potions': 5,
-                         'max_health_potions': 0, 'small_mp_potions': 3, 'medium_mp_potions': 4, 'large_mp_potions': 0,
-                         'max_mp_potions': 4}, 'world': 'Green Field', 'quests_completed': [], 'current_quest': 'none'}
+def resizeSmallWindow():
+    window.geometry('128x72')
 
 
-# with open('saveOneData.json', 'w') as outfile:
-#    saveOneJson = json.dumps(saveOne)
-#    json.dump(saveOneJson, outfile)
+def resizeBigWindow():
+    window.geometry('1280x720')
 
-# with open('saveOneData.json') as json_file:
-#    data = json.load(json_file)
-#    saveOne = json.loads(data)
+
+def destroyButton():
+    Button1.destroy()
+    Button4 = Button(window, text='Next', command=destroyButton, width='6', bg='gray', fg='white', font='times 16')
+    Button4.grid(row=1, column=0, sticky='w')
+
+
+def toggleFullscreen():
+    global fullscreen
+    fullscreen = not fullscreen
+    window.attributes('-fullscreen', fullscreen)
+
+
+def exitGame():
+    window.destroy()
+    exit()
+
+
+Button1 = Button(window, text='Next', command=destroyButton, width='6', bg='gray', fg='white', font='times 16')
+Button1.grid(row=0, column=0, sticky='w')
+
+Button2 = Button(window, text='Big', command=toggleFullscreen, width='6', bg='gray', fg='white', font='times 16')
+Button2.grid(row=1, column=0, sticky='w')
+
+Button3 = Button(window, text='Exit', command=exitGame, width='6', bg='gray', fg='white', font='times 16')
+Button3.grid(row=2, column=0, sticky='w')
+
+
+window.mainloop()
