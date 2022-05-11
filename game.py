@@ -52,6 +52,8 @@ async def startGame():
             at.start(erasePlayer())
         if answer == 'settings' or answer == '3':
             at.start(settings())
+        if answer == 'exit' or answer == '4':
+            exitGame()
     else:
         text = 'That is not an options.'
         setTextOutput(text)
@@ -108,57 +110,62 @@ async def newGame():
     playerData['world'] = 'Green Field'
     playerData['quests_completed'] = []
     playerData['current_quest'] = 'none'
-    text = 'Welcome ' + answer + ', are you ready for your adventure to begin.'
+    text = 'Welcome ' + answer + ', are you ready for your adventure to begin!'
     saveData()
     setTextOutput(text)
     playerButton['text'] = 'Next'
     await at.event(playerButton, '<Button>')
-    at.start(playerSelect())
+    at.start(chooseClass())
 
 
 async def playerSelect():
     loadData()
     global playerData
     global slotNumber
-    text = 'What save would you like to use?\n'
+    text = 'What save would you like to use?\n\n'
     text += '1. ' + saveOne['name'] + '\n'
     text += '2. ' + saveTwo['name'] + '\n'
     text += '3. ' + saveThree['name'] + '\n'
-    text += 'Answer: 1, 2, 3'
+    text += '4. Back\n'
+    text += 'Answer: 1, 2, 3, 4'
+    options = ['1', '2', '3', '4']
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
     answer = grabText()
-    if answer == 'one' or answer == '1':
-        playerData = saveOne
-        slotNumber = 1
-        if playerData['name'] == 'Empty':
-            at.start(newGame())
-        else:
-            if playerData['type_class'] == 'none':
-                at.start(chooseClass())
+    if options.__contains__(answer):
+        if answer == '1':
+            playerData = saveOne
+            slotNumber = 1
+            if playerData['name'] == 'Empty':
+                at.start(newGame())
             else:
-                at.start(gameLoop())
-    elif answer == 'two' or answer == '2':
-        playerData = saveTwo
-        slotNumber = 2
-        if playerData['name'] == 'Empty':
-            at.start(newGame())
-        else:
-            if playerData['type_class'] == 'none':
-                at.start(chooseClass())
+                if playerData['type_class'] == 'none':
+                    at.start(chooseClass())
+                else:
+                    at.start(gameLoop())
+        if answer == '2':
+            playerData = saveTwo
+            slotNumber = 2
+            if playerData['name'] == 'Empty':
+                at.start(newGame())
             else:
-                at.start(gameLoop())
-    elif answer == 'three' or answer == '3':
-        playerData = saveThree
-        slotNumber = 3
-        if playerData['name'] == 'Empty':
-            at.start(newGame())
-        else:
-            if playerData['type_class'] == 'none':
-                at.start(chooseClass())
+                if playerData['type_class'] == 'none':
+                    at.start(chooseClass())
+                else:
+                    at.start(gameLoop())
+        if answer == '3':
+            playerData = saveThree
+            slotNumber = 3
+            if playerData['name'] == 'Empty':
+                at.start(newGame())
             else:
-                at.start(gameLoop())
+                if playerData['type_class'] == 'none':
+                    at.start(chooseClass())
+                else:
+                    at.start(gameLoop())
+        if answer == '4':
+            at.start(startGame())
     else:
         text = 'That is not an answer.'
         setTextOutput(text)
@@ -251,7 +258,6 @@ async def chooseClass():
             playerData['weapon'] = 'wand'
             playerData['weapon_inventory'].append(playerData['weapon'])
             playerData['attacks']['attack_list'].append(attackData['mage_attack_list']['attack'])
-            playerData['attacks']['attack_list'].append(attackData['mage_attack_list']['fire_attack'])
         if answer == 'paladin' or answer == '2':
             text = 'You have selected paladin class.\n'
             text += 'You received a sword.'
@@ -270,7 +276,7 @@ async def chooseClass():
             playerData['attacks']['attack_list'].append(attackData['archer_attack_list']['attack'])
         await at.event(playerButton, '<Button>')
         saveData()
-        at.start(playerSelect())
+        at.start(gameLoop())
     else:
         text = 'That is not an answer.'
         setTextOutput(text)
@@ -301,13 +307,13 @@ async def erasePlayer():
         if saveThree['name'] != 'Empty':
             text += '3. ' + saveThree['name'] + '\n'
             options += ['3']
-        text += 'Options: 1, 2, 3, exit'
+        text += 'Options: 1, 2, 3, back'
         setTextOutput(text)
         playerButton['text'] = 'Submit'
         await at.event(playerButton, '<Button>')
         answer = grabText()
         if options.__contains__(answer):
-            if answer == 'exit':
+            if answer == 'back':
                 at.start(startGame())
             else:
                 text = 'Are you sure you want to erase this save slot you cannot get the data back.\n'
@@ -330,7 +336,7 @@ async def erasePlayer():
                     if answer == 'no':
                         at.start(startGame())
         else:
-            text = 'That is not an options.'
+            text = 'That is not an option.'
             setTextOutput(text)
             playerButton['text'] = 'Next'
             await at.event(playerButton, '<Button>')
@@ -342,84 +348,102 @@ async def gameLoop():
 
     # Update PlayerStats and equipment text
     updatePlayerStats()
+    n = 0
     level = playerData['level']
-    text = 'What would you like to do?\n'
+    text = 'What would you like to do?\n\n'
     text += '1. Chop\n'
     text += '2. Mine\n'
     text += '3. Fight\n'
     text += '4. Heal\n'
-    options = ['1', 'chop', '2', 'mine', '3', 'fight', '4', 'heal']
+    n += 5
+    options = ['1', 'chop', '2', 'mine', '3', 'fight', '4', 'heal', 'back']
     if level >= 3:
         text += '5. Shop\n'
         options += ['shop', '5']
+        n += 1
     if level >= 5:
         text += '6. Smelt\n'
         options += ['smelt', '6']
+        n += 1
     if level >= 7:
         text += '7. Travel\n'
         options += ['travel', '7']
+        n += 1
     if level >= 10:
         text += '8. Quests\n'
         options += ['quests', '8']
+        n += 1
     if level >= 12:
         text += '9. Dojo\n'
         options += ['dojo', '9']
+        n += 1
     if level >= 15:
         text += '10. Enchant\n'
         options += ['enchant', '10']
-
+        n += 1
+    text += str(n) + '. Back'
+    options += [str(n)]
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
     answer = grabText()
     if options.__contains__(answer):
-        if answer == 'chop' or answer == '1':
-            wood_gained = random.randint(2, 5) * level
-            text = 'You go to the forest to chop down some trees.\n'
-            text += 'You gained ' + str(wood_gained) + ' wood.'
-            playerData['wood'] += wood_gained
-            saveData()
-            setTextOutput(text)
-            playerButton['text'] = 'Next'
-            await at.event(playerButton, '<Button>')
-            at.start(gameLoop())
-        if answer == 'mine' or answer == '2':
-            iron_ore_gained = random.randint(3, 5) * level
-            gold_ore_gained = random.randint(2, 3) * level
-            stone_gained = random.randint(3, 4) * level
-            text = 'You go to the mines to get some stones'
-            if level >= 5:
-                text += ', iron and gold.\n'
-                playerData['iron_ore'] += iron_ore_gained
-                playerData['gold_ore'] += gold_ore_gained
-            else:
-                text += '.\n'
-            playerData['stone'] += stone_gained
-            text += 'You gained ' + str(stone_gained) + ' stone.\n'
-            if level >= 5:
-                text += 'You gained ' + str(iron_ore_gained) + ' iron ore.\n'
-                text += 'You gained ' + str(gold_ore_gained) + ' gold ore.'
-            saveData()
-            setTextOutput(text)
-            playerButton['text'] = 'Next'
-            await at.event(playerButton, '<Button>')
-            at.start(gameLoop())
-        if answer == 'fight' or answer == '3':
-            at.start(fight())
-        if answer == 'heal' or answer == '4':
-            at.start(heal())
-        if answer == 'shop' or answer == '5':
-            at.start(shop())
-        if answer == 'smelt' or answer == '6':
-            at.start(smelt())
-        if answer == 'travel' or answer == '7':
-            at.start(travel())
-        if answer == 'quests' or answer == '8':
-            at.start(quests())
-        if answer == 'dojo' or answer == '9':
-            at.start(dojo())
-        if answer == 'enchant' or answer == '10':
-            at.start(enchant())
+        if answer == 'back' or answer == str(n):
+            playerStatsOutput.configure(state='normal')
+            playerEquipOutput.configure(state='normal')
+            playerStatsOutput.delete(0.0, END)
+            playerEquipOutput.delete(0.0, END)
+            playerStatsOutput.configure(state='disabled')
+            playerEquipOutput.configure(state='disabled')
+            at.start(startGame())
+        else:
+            if answer == 'chop' or answer == '1':
+                wood_gained = random.randint(2, 5) * level
+                text = 'You go to the forest to chop down some trees.\n'
+                text += 'You gained ' + str(wood_gained) + ' wood.'
+                playerData['wood'] += wood_gained
+                saveData()
+                setTextOutput(text)
+                playerButton['text'] = 'Next'
+                await at.event(playerButton, '<Button>')
+                at.start(gameLoop())
+            if answer == 'mine' or answer == '2':
+                iron_ore_gained = random.randint(3, 5) * level
+                gold_ore_gained = random.randint(2, 3) * level
+                stone_gained = random.randint(3, 4) * level
+                text = 'You go to the mines to get some stones'
+                if level >= 5:
+                    text += ', iron and gold.\n'
+                    playerData['iron_ore'] += iron_ore_gained
+                    playerData['gold_ore'] += gold_ore_gained
+                else:
+                    text += '.\n'
+                playerData['stone'] += stone_gained
+                text += 'You gained ' + str(stone_gained) + ' stone.\n'
+                if level >= 5:
+                    text += 'You gained ' + str(iron_ore_gained) + ' iron ore.\n'
+                    text += 'You gained ' + str(gold_ore_gained) + ' gold ore.'
+                saveData()
+                setTextOutput(text)
+                playerButton['text'] = 'Next'
+                await at.event(playerButton, '<Button>')
+                at.start(gameLoop())
+            if answer == 'fight' or answer == '3':
+                at.start(fight())
+            if answer == 'heal' or answer == '4':
+                at.start(heal())
+            if answer == 'shop' or answer == '5':
+                at.start(shop())
+            if answer == 'smelt' or answer == '6':
+                at.start(smelt())
+            if answer == 'travel' or answer == '7':
+                at.start(travel())
+            if answer == 'quests' or answer == '8':
+                at.start(quests())
+            if answer == 'dojo' or answer == '9':
+                at.start(dojo())
+            if answer == 'enchant' or answer == '10':
+                at.start(enchant())
     else:
         text = 'That is not an answer.'
         setTextOutput(text)
@@ -513,6 +537,9 @@ async def heal():
                 text += str(n) + '. Max MP Potion: x' + str(max_mp_pot) + ' Restores all your MP.\n'
                 options += ['maxmp', str(n)]
                 mamp = 0
+                n += 1
+            text += str(n) + '. Back'
+            options += [str(n)]
             setTextOutput(text)
             playerButton['text'] = 'Submit'
             await at.event(playerButton, '<Button>')
@@ -643,7 +670,7 @@ async def heal():
                     playerButton['text'] = 'Next'
                     await at.event(playerButton, '<Button>')
                     at.start(gameLoop())
-                if answer == 'exit' or answer == 'back':
+                if answer == 'back' or answer == str(n):
                     at.start(gameLoop())
             else:
                 text = 'You do not have that potion.'
@@ -679,10 +706,14 @@ async def shop():
     text = 'Welcome to the shop!\n'
     text += 'What would you like to do?\n\n'
     text += '1. Buy\n'
-    options = ['back', 'exit', 'buy', '1']
+    options = ['back', 'buy', '1']
+    n = 2
     if level >= 6:
         text += '2. Sell\n'
         options += ['sell', '2']
+        n += 1
+    text += str(n) + '. Back'
+    options += [str(n)]
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
@@ -691,8 +722,9 @@ async def shop():
         if answer == 'buy' or answer == '1':
             text = 'What would you lie to buy?\n\n'
             text += '1. Potions\n'
-            text += '2. Materials'
-            options = ['1', '2', 'potions', 'potion', 'pot', 'materials', 'material']
+            text += '2. Materials\n'
+            text += '3. Back'
+            options = ['1', '2', '3', 'potions', 'potion', 'pot', 'materials', 'material', 'back']
             setTextOutput(text)
             playerButton['text'] = 'Submit'
             await at.event(playerButton, '<Button>')
@@ -986,13 +1018,15 @@ async def shop():
                         playerButton['text'] = 'Next'
                         await at.event(playerButton, '<Button>')
                         at.start(shop())
+                if answer == 'back' or answer == '3':
+                    at.start(gameLoop())
             else:
                 text = 'That is not something you can buy.'
                 setTextOutput(text)
                 playerButton['text'] = 'Next'
                 await at.event(playerButton, '<Button>')
                 at.start(shop())
-        if answer == 'sell' or answer == '2':
+        if (answer == 'sell' or answer == '2') and level >= 6:
             text = 'What would you like to sell?\n\n'
             text += '1. Wood: x' + str(playerData['wood']) + '    1 coin.\n'
             text += '2. Stone: x' + str(playerData['stone']) + '    2 coins\n'
@@ -1000,125 +1034,131 @@ async def shop():
             text += '4. Gold Ore: x' + str(playerData['gold_ore']) + '    8 coins\n'
             text += '5. Iron: x' + str(playerData['iron']) + '    15 coins\n'
             text += '6. Gold: x' + str(playerData['gold']) + '    25 coins\n'
+            text += '7. Back'
             setTextOutput(text)
             playerButton['text'] = 'Submit'
             await at.event(playerButton, '<Button>')
             item = grabText()
-            options = ['1', '2', '3', '4', '5', '6', 'wood', 'stone', 'ironore', 'goldore', 'iron', 'gold']
+            options = ['1', '2', '3', '4', '5', '6', '7', 'wood', 'stone', 'ironore', 'goldore', 'iron', 'gold', 'back']
             if options.__contains__(item):
-                text = 'How many would you like to sell.'
-                setTextOutput(text)
-                await at.event(playerButton, '<Button>')
-                answer = grabText()
-                num = int(answer)
-                if item == 'wood' or item == '1':
-                    if playerData['wood'] >= num:
-                        coins_gained = num
-                        text = 'You sold ' + str(num) + ' wood for ' + str(coins_gained) + ' coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['wood'] -= num
-                        playerData['money'] += coins_gained
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough resources for that.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
-                if item == 'stone' or item == '2':
-                    if playerData['stone'] >= num:
-                        coins_gained = num * 2
-                        text = 'You sold ' + str(num) + ' stone for ' + str(coins_gained) + ' coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['stone'] -= num
-                        playerData['money'] += coins_gained
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough resources for that.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
-                if item == 'ironore' or item == '3':
-                    if playerData['iron_ore'] >= num:
-                        coins_gained = num * 5
-                        text = 'You sold ' + str(num) + ' iron ore for ' + str(coins_gained) + ' coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['iron_ore'] -= num
-                        playerData['money'] += coins_gained
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough resources for that.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
-                if item == 'goldore' or item == '4':
-                    if playerData['gold_ore'] >= num:
-                        coins_gained = num * 8
-                        text = 'You sold ' + str(num) + ' gold ore for ' + str(coins_gained) + ' coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['gold_ore'] -= num
-                        playerData['money'] += coins_gained
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough resources for that.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
-                if item == 'iron' or item == '5':
-                    if playerData['iron'] >= num:
-                        coins_gained = num * 15
-                        text = 'You sold ' + str(num) + ' iron for ' + str(coins_gained) + ' coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['iron'] -= num
-                        playerData['money'] += coins_gained
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough resources for that.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
-                if item == 'gold' or item == '6':
-                    if playerData['gold'] >= num:
-                        coins_gained = num * 25
-                        text = 'You sold ' + str(num) + ' gold for ' + str(coins_gained) + ' coins.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        playerData['gold'] -= num
-                        playerData['money'] += coins_gained
-                        saveData()
-                        at.start(gameLoop())
-                    else:
-                        text = 'You do not have enough resources for that.'
-                        setTextOutput(text)
-                        playerButton['text'] = 'Next'
-                        await at.event(playerButton, '<Button>')
-                        at.start(shop())
+                if item == 'back' or item == '7':
+                    at.start(gameLoop())
+                else:
+                    text = 'How many would you like to sell.'
+                    setTextOutput(text)
+                    await at.event(playerButton, '<Button>')
+                    answer = grabText()
+                    num = int(answer)
+                    if item == 'wood' or item == '1':
+                        if playerData['wood'] >= num:
+                            coins_gained = num
+                            text = 'You sold ' + str(num) + ' wood for ' + str(coins_gained) + ' coins.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            playerData['wood'] -= num
+                            playerData['money'] += coins_gained
+                            saveData()
+                            at.start(gameLoop())
+                        else:
+                            text = 'You do not have enough resources for that.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            at.start(shop())
+                    if item == 'stone' or item == '2':
+                        if playerData['stone'] >= num:
+                            coins_gained = num * 2
+                            text = 'You sold ' + str(num) + ' stone for ' + str(coins_gained) + ' coins.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            playerData['stone'] -= num
+                            playerData['money'] += coins_gained
+                            saveData()
+                            at.start(gameLoop())
+                        else:
+                            text = 'You do not have enough resources for that.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            at.start(shop())
+                    if item == 'ironore' or item == '3':
+                        if playerData['iron_ore'] >= num:
+                            coins_gained = num * 5
+                            text = 'You sold ' + str(num) + ' iron ore for ' + str(coins_gained) + ' coins.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            playerData['iron_ore'] -= num
+                            playerData['money'] += coins_gained
+                            saveData()
+                            at.start(gameLoop())
+                        else:
+                            text = 'You do not have enough resources for that.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            at.start(shop())
+                    if item == 'goldore' or item == '4':
+                        if playerData['gold_ore'] >= num:
+                            coins_gained = num * 8
+                            text = 'You sold ' + str(num) + ' gold ore for ' + str(coins_gained) + ' coins.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            playerData['gold_ore'] -= num
+                            playerData['money'] += coins_gained
+                            saveData()
+                            at.start(gameLoop())
+                        else:
+                            text = 'You do not have enough resources for that.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            at.start(shop())
+                    if item == 'iron' or item == '5':
+                        if playerData['iron'] >= num:
+                            coins_gained = num * 15
+                            text = 'You sold ' + str(num) + ' iron for ' + str(coins_gained) + ' coins.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            playerData['iron'] -= num
+                            playerData['money'] += coins_gained
+                            saveData()
+                            at.start(gameLoop())
+                        else:
+                            text = 'You do not have enough resources for that.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            at.start(shop())
+                    if item == 'gold' or item == '6':
+                        if playerData['gold'] >= num:
+                            coins_gained = num * 25
+                            text = 'You sold ' + str(num) + ' gold for ' + str(coins_gained) + ' coins.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            playerData['gold'] -= num
+                            playerData['money'] += coins_gained
+                            saveData()
+                            at.start(gameLoop())
+                        else:
+                            text = 'You do not have enough resources for that.'
+                            setTextOutput(text)
+                            playerButton['text'] = 'Next'
+                            await at.event(playerButton, '<Button>')
+                            at.start(shop())
             else:
                 text = 'That is not something you can sell.'
                 setTextOutput(text)
                 playerButton['text'] = 'Next'
                 await at.event(playerButton, '<Button>')
                 at.start(shop())
+        if answer == 'back' or answer == str(n):
+            at.start(gameLoop())
     else:
         text = 'That is not an answer.'
         setTextOutput(text)
@@ -1137,13 +1177,14 @@ async def smelt():
     text += 'What would you like to smelt?\n\n'
     text += '1. Iron    Requires: 1 iron ore, 1 wood    Cost 10 coins\n'
     text += '2. Gold    Requires: 1 gold ore, 2 wood    Cost 15 coins\n'
-    options = ['1', '2', 'iron', 'gold', 'back', 'exit']
+    text += '3. Back'
+    options = ['1', '2', '3', 'iron', 'gold', 'back']
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
     item = grabText()
     if options.__contains__(item):
-        if item == 'exit' or item == 'back':
+        if item == 'back' or item == '3':
             at.start(gameLoop())
         else:
             text = 'How much would you like to make?'
@@ -1203,28 +1244,36 @@ async def travel():
 
     text = 'Where would you like to go?\n\n'
     text += '1. Green Field\n'
-    options = ['greenfield', '1', 'back', 'exit']
-    if level >= 5:
+    n = 2
+    options = ['greenfield', '1', 'back']
+    if level >= 7:
         text += '2. Deep Forest\n'
         options += ['deepforest', '2']
+        n += 1
     if level >= 9:
         text += '3. Ice Plain\n'
         options += ['iceplain', '3']
+        n += 1
     if level >= 13:
         text += '4. Lava Cave\n'
         options += ['lavacave', '4']
+        n += 1
     if level >= 18:
         text += '5.Sky City\n'
         options += ['skycity', '5']
+        n += 1
     if level >= 24:
         text += '6. Dark Descent\n'
         options += ['darkdescent', '6']
+        n += 1
+    text += str(n) + '. Back'
+    options += [str(n)]
     setTextOutput(text)
     playerButton['text'] = 'Submit'
     await at.event(playerButton, '<Button>')
     answer = grabText()
     if options.__contains__(answer):
-        if answer == 'exit' or answer == 'back':
+        if answer == 'back' or answer == str(n):
             at.start(gameLoop())
         else:
             text = 'Travelling to '
@@ -1251,7 +1300,6 @@ async def travel():
             await at.event(playerButton, '<Button>')
             saveData()
             at.start(gameLoop())
-
     else:
         text = 'That place does not exist.'
         setTextOutput(text)
@@ -1302,10 +1350,12 @@ async def checkLevelup():
             text += 'You can now buy medium potions in the shop.\n'
         if level == 5:
             text += 'You have unlocked the blacksmiths.\n'
-            text += 'You can now travel to the deep forest.\n'
         if level == 6:
             text += 'You can now sell things in the shop.\n'
             text += 'You can now buy ore from the shop.\n'
+        if level == 7:
+            text += 'You can now travel to different places in the world.\n'
+            text += 'You can now travel to the deep forest.\n'
         if level == 9:
             text += 'You can now buy large potions at the shop.\n'
             text += 'You can now travel to the ice plain.\n'
