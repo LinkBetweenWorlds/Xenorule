@@ -1,9 +1,12 @@
 import json
 import math
+import os.path
 import random
 from tkinter import *
 from PIL import Image, ImageTk
 import asynctkinter as at
+import time
+from threading import *
 
 # Setup game window
 window = Tk()
@@ -11,7 +14,7 @@ window.title('Xenorule')
 window.configure(background='black')
 window.geometry('1280x720')
 window.resizable(width=NO, height=NO)
-window.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('appicon.ico')))
+window.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('appicon.gif')))
 
 # Setup text box
 playerStatsOutput = Text(window, width=60, height=10, bg='black', fg='white', font='times 16')
@@ -32,34 +35,37 @@ playerData = {}
 
 
 async def startGame():
-    loadData()
-    text = 'Welcome to Xenorule!\n'
-    text += 'What would you like to do?\n\n'
-    text += '1. Play\n'
-    text += '2. Erase\n'
-    text += '3. Settings\n'
-    text += '4. Exit\n'
-    text += 'Answer: 1, 2, 3, 4'
-    options = ['play', 'erase', 'settings', 'exit', '1', '2', '3', '4']
-    setTextOutput(text)
-    playerButton['text'] = 'Submit'
-    await at.event(playerButton, '<Button>')
-    answer = grabText()
-    if options.__contains__(answer):
-        if answer == 'play' or answer == '1':
-            at.start(playerSelect())
-        if answer == 'erase' or answer == '2':
-            at.start(erasePlayer())
-        if answer == 'settings' or answer == '3':
-            at.start(settings())
-        if answer == 'exit' or answer == '4':
-            exitGame()
-    else:
-        text = 'That is not an options.'
+    if os.path.exists('playerData/saveOneData.json'):
+        loadData()
+        text = 'Welcome to Xenorule!\n'
+        text += 'What would you like to do?\n\n'
+        text += '1. Play\n'
+        text += '2. Erase\n'
+        text += '3. Settings\n'
+        text += '4. Exit\n'
+        text += 'Answer: 1, 2, 3, 4'
+        options = ['play', 'erase', 'settings', 'exit', '1', '2', '3', '4']
+        playerButton['text'] = 'Submit'
         setTextOutput(text)
-        playerButton['text'] = 'Next'
         await at.event(playerButton, '<Button>')
-        at.start(startGame())
+        answer = grabText()
+        if options.__contains__(answer):
+            if answer == 'play' or answer == '1':
+                at.start(playerSelect())
+            if answer == 'erase' or answer == '2':
+                at.start(erasePlayer())
+            if answer == 'settings' or answer == '3':
+                at.start(settings())
+            if answer == 'exit' or answer == '4':
+                exitGame()
+        else:
+            text = 'That is not an option.'
+            playerButton['text'] = 'Next'
+            setTextOutput(text)
+            await at.event(playerButton, '<Button>')
+            at.start(startGame())
+    else:
+        firstTimeStartUp()
 
 
 async def newGame():
@@ -67,8 +73,8 @@ async def newGame():
     global slotNumber
     text = 'Welcome to Xenorule!\n'
     text += 'What is your name, traveller?'
-    setTextOutput(text)
     playerButton['text'] = 'Submit'
+    setTextOutput(text)
     await at.event(playerButton, '<Button>')
     answer = playerAnswerBox.get()
     playerAnswerBox.delete(0, END)
@@ -116,6 +122,21 @@ async def newGame():
     playerButton['text'] = 'Next'
     await at.event(playerButton, '<Button>')
     at.start(chooseClass())
+
+
+def firstTimeStartUp():
+    saveOverride = {'name': 'Empty', 'type_class': 'none', 'level': 0, 'exp': 0}
+    saveOverrideJson = json.dumps(saveOverride)
+    os.mkdir("./playerData")
+
+    with open('playerData/saveOneData.json', 'w') as outfile:
+        json.dump(saveOverrideJson, outfile)
+    with open('playerData/saveTwoData.json', 'w') as outfile:
+        json.dump(saveOverrideJson, outfile)
+    with open('playerData/saveThreeData.json', 'w') as outfile:
+        json.dump(saveOverrideJson, outfile)
+
+    at.start(startGame())
 
 
 async def playerSelect():
@@ -176,15 +197,26 @@ async def playerSelect():
 
 async def settings():
     global settingsData
+    textSpeed = settingsData['textSpeed']
+    textSpeedWord = ''
+    if textSpeed == 0:
+        textSpeedWord = 'Instant'
+    elif textSpeed == 0.01:
+        textSpeedWord = 'Fast'
+    elif textSpeed == 0.05:
+        textSpeedWord = 'Medium'
+    elif textSpeed == 0.1:
+        textSpeedWord = 'Slow'
     text = 'Settings\n'
     text += '1. Background Music: ' + str(settingsData['backgroundMusic']) + '\n'
     text += '2. Sound FX: ' + str(settingsData['soundFX']) + '\n'
     text += '3. Screen Size\n'
-    text += '3. Back\n'
-    text += 'What settings would you like to change. (1, 2, 3, 4)'
-    setTextOutput(text)
-    options = ['1', '2', '3', '4', 'backgroundmusic', 'soundfx', 'screensize', 'back']
+    text += '4. Text Speed: ' + textSpeedWord + '\n'
+    text += '5. Back\n'
+    text += 'What settings would you like to change. (1, 2, 3, 4, 5)'
     playerButton['text'] = 'Submit'
+    setTextOutput(text)
+    options = ['1', '2', '3', '4', '5', 'backgroundmusic', 'soundfx', 'screensize', 'textspeed', 'back']
     await at.event(playerButton, '<Button>')
     answer = grabText()
     if options.__contains__(answer):
@@ -198,7 +230,9 @@ async def settings():
             at.start(settings())
         if answer == '3' or answer == 'screensize':
             at.start(screenOptions())
-        if answer == '4' or answer == 'back':
+        if answer == '4' or answer == 'textspeed':
+            textSpeed = 0
+        if answer == '5' or answer == 'back':
             at.start(startGame())
     else:
         text = 'That is not an option.'
@@ -211,7 +245,8 @@ async def settings():
 async def screenOptions():
     # TODO work out how to do this
     global settingsData
-    text = '1. Fullscreen: ' + str(settingsData['fullscreen']) + '\n'
+    text = 'Which settings would you like to change.\n\n'
+    text += '1. Fullscreen: ' + str(settingsData['fullscreen']) + '\n'
     text += '2. Screen Size: ' + str(settingsData['width']) + ' x ' + str(settingsData['height']) + '\n'
     text += '3. Back'
     setTextOutput(text)
@@ -239,7 +274,7 @@ async def chooseClass():
     global playerData
     global attackData
 
-    text = 'What class would you like to be?\n'
+    text = 'What class would you like to be?\n\n'
     text += '1. Mage: Casts powerful spells to defeat their enemies.\n'
     text += '2. Paladin: Slashes their enemies to pieces.\n'
     text += '3. Archer: Rains arrows down on their foes.\n'
@@ -296,7 +331,7 @@ async def erasePlayer():
         await at.event(playerButton, '<Button>')
         at.start(startGame())
     else:
-        text = 'Which slot would you like to erase?\n'
+        text = 'Which slot would you like to erase?\n\n'
         options = ['exit']
         if saveOne['name'] != 'Empty':
             text += '1. ' + saveOne['name'] + '\n'
@@ -1394,10 +1429,26 @@ async def checkLevelup():
 
 
 def setTextOutput(text):
-    textOutput.configure(state='normal')
-    textOutput.delete(0.0, END)
-    textOutput.insert(END, text)
-    textOutput.configure(state='disabled')
+    t1 = Thread(target=renderText(text))
+    t1.start()
+
+
+def renderText(text):
+    global settingsData
+    if settingsData['textSpeed'] == 0:
+        textOutput.configure(state='normal')
+        textOutput.delete(0.0, END)
+        textOutput.insert(END, text)
+        textOutput.configure(state='disabled')
+    else:
+        word = list(text)
+        textOutput.configure(state='normal')
+        textOutput.delete(0.0, END)
+        for char in word:
+            textOutput.insert(END, char)
+            textOutput.update()
+            time.sleep(settingsData['textSpeed'])
+        textOutput.configure(state='disabled')
 
 
 def updatePlayerStats():
@@ -1527,9 +1578,9 @@ def exitGame():
 
 
 # Setup game buttons
-playerButton = Button(window, text='Next', width='6', bg='gray', fg='white', font='times 16')
+playerButton = Button(window, text='Next', width='7', bg='gray', fg='white', font='times 16')
 playerButton.grid(row=4, column=0, sticky='w')
-exitButton = Button(window, text='Exit', width='6', command=exitGame, bg='gray', fg='white', font='times 16')
+exitButton = Button(window, text='Exit', width='7', command=exitGame, bg='gray', fg='white', font='times 16')
 exitButton.grid(row=5, column=0, sticky='w')
 
 at.start(startGame())

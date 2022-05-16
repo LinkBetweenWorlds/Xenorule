@@ -18,6 +18,7 @@ def settingsDataUpdate():
         'backgroundMusic': True,
         'soundFX': True,
         'fullscreen': True,
+        'textSpeed': 0,
         'width': 1280,
         'height': 720
     }
