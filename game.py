@@ -1,5 +1,6 @@
 import json
 import math
+import multiprocessing
 import os.path
 import random
 from tkinter import *
@@ -32,6 +33,7 @@ playerAnswerBox.grid(row=3, column=0, columnspan=2, sticky='w')
 
 slotNumber = 0
 playerData = {}
+all_processes = []
 
 
 async def startGame():
@@ -203,9 +205,9 @@ async def settings():
         textSpeedWord = 'Instant'
     elif textSpeed == 0.01:
         textSpeedWord = 'Fast'
+    elif textSpeed == 0.03:
+        textSpeedWord = 'Normal'
     elif textSpeed == 0.05:
-        textSpeedWord = 'Medium'
-    elif textSpeed == 0.1:
         textSpeedWord = 'Slow'
     text = 'Settings\n'
     text += '1. Background Music: ' + str(settingsData['backgroundMusic']) + '\n'
@@ -231,7 +233,7 @@ async def settings():
         if answer == '3' or answer == 'screensize':
             at.start(screenOptions())
         if answer == '4' or answer == 'textspeed':
-            textSpeed = 0
+            at.start(textSpeedOptions())
         if answer == '5' or answer == 'back':
             at.start(startGame())
     else:
@@ -268,6 +270,41 @@ async def screenOptions():
         playerButton['text'] = 'Next'
         await at.event(playerButton, '<Button>')
         at.start(screenOptions())
+
+
+async def textSpeedOptions():
+    global settingsData
+
+    text = 'What speed would you like to change to?\n\n'
+    text += '1. Instant\n'
+    text += '2. Fast\n'
+    text += '3. Normal\n'
+    text += '4. Slow\n'
+    text += '5. Back'
+    options = ['1', '2', '3', '4', '5', 'instant', 'fast', 'normal', 'slow', 'back']
+    setTextOutput(text)
+    playerButton['text'] = 'Submit'
+    await at.event(playerButton, '<Button>')
+    answer = grabText()
+    if options.__contains__(answer):
+        if answer == '1' or answer == 'instant':
+            settingsData['textSpeed'] = 0
+        if answer == '2' or answer == 'fast':
+            settingsData['textSpeed'] = 0.01
+        if answer == '3' or answer == 'normal':
+            settingsData['textSpeed'] = 0.03
+        if answer == '4' or answer == 'slow':
+            settingsData['textSpeed'] = 0.05
+        if answer == '5' or answer == 'back':
+            at.start(settings())
+        saveData()
+        at.start(settings())
+    else:
+        text = 'That is not an option.'
+        setTextOutput(text)
+        playerButton['text'] = 'Next'
+        await at.event(playerButton, '<Button>')
+        at.start(textSpeedOptions())
 
 
 async def chooseClass():
@@ -1429,7 +1466,7 @@ async def checkLevelup():
 
 
 def setTextOutput(text):
-    t1 = Thread(target=renderText(text))
+    t1 = Thread(target=renderText, args=(text,))
     t1.start()
 
 
@@ -1452,6 +1489,11 @@ def renderText(text):
 
 
 def updatePlayerStats():
+    t2 = Thread(target=renderPlayerStats)
+    t2.start()
+
+
+def renderPlayerStats():
     global playerData
     playerStatsOutput.configure(state='normal')
     playerEquipOutput.configure(state='normal')
