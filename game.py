@@ -1467,30 +1467,29 @@ async def checkLevelup():
 
 def setTextOutput(text):
     t1 = Thread(target=renderText, args=(text,))
-    t1.start()
+    t1.run()
 
 
 def renderText(text):
     global settingsData
+    textOutput.configure(state='normal')
     if settingsData['textSpeed'] == 0:
-        textOutput.configure(state='normal')
         textOutput.delete(0.0, END)
         textOutput.insert(END, text)
-        textOutput.configure(state='disabled')
     else:
         word = list(text)
-        textOutput.configure(state='normal')
         textOutput.delete(0.0, END)
         for char in word:
             textOutput.insert(END, char)
             textOutput.update()
             time.sleep(settingsData['textSpeed'])
-        textOutput.configure(state='disabled')
+    textOutput.configure(state='disabled')
+    return
 
 
 def updatePlayerStats():
     t2 = Thread(target=renderPlayerStats)
-    t2.start()
+    t2.run()
 
 
 def renderPlayerStats():
