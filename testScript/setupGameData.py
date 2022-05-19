@@ -18,7 +18,7 @@ def settingsDataUpdate():
         'backgroundMusic': True,
         'soundFX': True,
         'fullscreen': True,
-        'textSpeed': 0,
+        'textSpeed': 0.01,
         'width': 1280,
         'height': 720
     }
@@ -31,7 +31,8 @@ def settingsDataUpdate():
 def battleDataUpdate():
     battleData = {
         'current_enemy': 'none',
-        'currently_fighting': 'none',
+        'currently_fighting': False,
+        'current_enemy_data': {},
         'current_enemy_health': 0,
         'turn_count': 0
     }
@@ -154,4 +155,4 @@ def allDataUpdate():
     battleDataUpdate()
     settingsDataUpdate()
 
-settingsDataUpdate()
+battleDataUpdate()

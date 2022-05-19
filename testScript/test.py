@@ -2,6 +2,7 @@ import asyncio
 import time
 from tkinter import *
 from PIL import Image, ImageTk
+from screeninfo import get_monitors
 
 
 window = Tk()
@@ -53,13 +54,21 @@ def scrollingText():
     textOutput.configure(state='disabled')
 
 
-
 def setTextOutput(text):
     print('setting text')
     textOutput.configure(state='normal')
     textOutput.delete(0.0, END)
     textOutput.insert(END, text)
     textOutput.configure(state='disabled')
+
+
+def getScreenSize():
+    m = get_monitors()
+    height = m[0].height
+    width = m[0].width
+    screenSize = str(width) + 'x' + str(height)
+    print(screenSize)
+    window.geometry(screenSize)
 
 
 def exitGame():
@@ -79,6 +88,6 @@ Button3.grid(row=2, column=0, sticky='w')
 textOutput = Text(window, width=120, height=13, bg='black', fg='white', font='times 16')
 textOutput.grid(row=3, column=0, columnspan=2, sticky='w')
 
-
+getScreenSize()
 
 window.mainloop()

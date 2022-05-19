@@ -1,6 +1,5 @@
 import json
 import math
-import multiprocessing
 import os.path
 import random
 from tkinter import *
@@ -8,6 +7,7 @@ from PIL import Image, ImageTk
 import asynctkinter as at
 import time
 from threading import *
+from screeninfo import get_monitors
 
 # Setup game window
 window = Tk()
@@ -33,7 +33,6 @@ playerAnswerBox.grid(row=3, column=0, columnspan=2, sticky='w')
 
 slotNumber = 0
 playerData = {}
-all_processes = []
 
 
 async def startGame():
@@ -263,7 +262,10 @@ async def screenOptions():
             saveData()
             at.start(screenOptions())
         if answer == '2' or answer == 'screensize':
-            screenSizeOptions = ['1980x1080', '1280x720']
+            screenSizeOptions = ['1980x1080', '1600x900', '1280x720']
+            m = get_monitors()
+            height = m[0].height
+            width = m[0].width
     else:
         text = 'That is not an option.'
         setTextOutput(text)
@@ -755,19 +757,35 @@ async def heal():
 async def fight():
     # TODO Fight
     global playerData
+    global battleData
 
-    attacks = playerData['attacks']['attack_list']
-
-    text = 'You start to fight an enemy.\n\n'
-    options = []
-    num = 0
-    for i in attacks:
-        num += 1
-        text += str(num) + '. ' + i['name'] + '    MP: ' + str(i['mp_cost']) + '\n'
-        options += str(num)
-        options.append(i['name'])
-    setTextOutput(text)
-    print(options)
+    if battleData['currently_fighting']:
+        attacks = playerData['attacks']['attack_list']
+        enemy = battleData['current_enemy_data']
+        enemyName = battleData['current_enemy']
+        enemyHP = battleData['current_enemy_health']
+        text = 'You start to fight a ' + enemyName + '.\n'
+        text += 'Enemy HP: ' + str(enemyHP) + '\n'
+        text += 'Turn Count: ' + str(battleData['turn_count']) + '\n\n'
+        options = []
+        num = 0
+        for i in attacks:
+            num += 1
+            text += str(num) + '. ' + i['name'] + '    MP: ' + str(i['mp_cost']) + '\n'
+            options += str(num)
+            options.append(i['name'])
+        setTextOutput(text)
+    else:
+        world = playerData['world']
+        enemyList = enemyData[world]
+        enemy = enemyData[random.choice(enemyList)]
+        battleData['currently_fighting'] = True
+        battleData['current_enemy'] = enemy['name']
+        battleData['current_enemy_health'] = enemy['hp']
+        battleData['turn_count'] = 0
+        battleData['current_enemy_data'] = enemy
+        saveData()
+        at.start(fight())
 
 
 async def shop():
