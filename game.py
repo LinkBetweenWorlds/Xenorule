@@ -3,19 +3,22 @@ import math
 import os.path
 import random
 from tkinter import *
+import vlc
 from PIL import Image, ImageTk
 import asynctkinter as at
 import time
 from threading import *
 from screeninfo import get_monitors
 
+
 # Setup game window
 window = Tk()
 window.title('Xenorule')
 window.configure(background='black')
-window.geometry('1280x720')
+window.geometry('1280x720+200+150')
 window.resizable(width=NO, height=NO)
 window.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('appicon.gif')))
+
 
 # Setup text box
 playerStatsOutput = Text(window, width=60, height=10, bg='black', fg='white', font='times 16')
@@ -31,13 +34,18 @@ Label(window, text='Answer:', bg='black', fg='white', font='times 16').grid(row=
 playerAnswerBox = Entry(window, width=120, bg='black', fg='white', font='times 16')
 playerAnswerBox.grid(row=3, column=0, columnspan=2, sticky='w')
 
+
 slotNumber = 0
 playerData = {}
+currentSong = 'none'
+musicPlayer = vlc.MediaPlayer()
+fxPlayer = vlc.MediaPlayer()
 
 
 async def startGame():
     if os.path.exists('playerData/saveOneData.json'):
         loadData()
+        bgMusicPlayer('battle1')
         text = 'Welcome to Xenorule!\n'
         text += 'What would you like to do?\n\n'
         text += '1. Play\n'
@@ -759,33 +767,81 @@ async def fight():
     global playerData
     global battleData
 
-    if battleData['currently_fighting']:
-        attacks = playerData['attacks']['attack_list']
-        enemy = battleData['current_enemy_data']
-        enemyName = battleData['current_enemy']
-        enemyHP = battleData['current_enemy_health']
-        text = 'You start to fight a ' + enemyName + '.\n'
-        text += 'Enemy HP: ' + str(enemyHP) + '\n'
-        text += 'Turn Count: ' + str(battleData['turn_count']) + '\n\n'
-        options = []
-        num = 0
-        for i in attacks:
-            num += 1
-            text += str(num) + '. ' + i['name'] + '    MP: ' + str(i['mp_cost']) + '\n'
-            options += str(num)
-            options.append(i['name'])
-        setTextOutput(text)
-    else:
-        world = playerData['world']
-        enemyList = enemyData[world]
-        enemy = enemyData[random.choice(enemyList)]
-        battleData['currently_fighting'] = True
+    updatePlayerStats()
+
+    if battleData['current_enemy'] == 'none':
+        enemy = enemyData[random.choice(enemyData[playerData['world']])]
         battleData['current_enemy'] = enemy['name']
-        battleData['current_enemy_health'] = enemy['hp']
-        battleData['turn_count'] = 0
         battleData['current_enemy_data'] = enemy
+        battleData['current_enemy_health'] = enemy['hp']
+        battleData['turn_count'] = 1
         saveData()
         at.start(fight())
+    else:
+        if not battleData['currently_fighting']:
+            num = random.randint(1, 3)
+            text = ''
+            if num == 1:
+                text += 'You wonder around the ' + playerData['world'].lower() + ' and find a ' + battleData['current_enemy'].lower() + '.\n'
+            if num == 2:
+                text += 'You stroll through the ' + playerData['world'].lower() + ' and come across a ' + battleData['current_enemy'].lower() + '.\n'
+            if num == 3:
+                text += 'You explore the ' + playerData['world'].lower() + 'and encounter a ' + battleData['current_enemy'].lower() + '.\n'
+            num = random.randint(1, 3)
+            if num == 1:
+                text += 'Do you want to fight it? (y/n)'
+            if num == 2:
+                text += 'Do you wish to engage it? (y/n)'
+            if num == 3:
+                text += 'Do you fancy fighting it? (y/n)'
+            setTextOutput(text)
+            options = ['y', 'n']
+            playerButton['text'] = 'Submit'
+            await at.event(playerButton, '<Button>')
+            answer = grabText()
+            if options.__contains__(answer):
+                if answer == 'y':
+                    text = 'You started to fight the ' + battleData['current_enemy'].lower() + '.\n'
+                    setTextOutput(text)
+                    battleData['currently_fighting'] = True
+                    saveData()
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(fight())
+                if answer == 'n':
+                    text = 'You returned back to camp.'
+                    setTextOutput(text)
+                    battleData['current_enemy'] = 'none'
+                    saveData()
+                    playerButton['text'] = 'Next'
+                    await at.event(playerButton, '<Button>')
+                    at.start(gameLoop())
+            else:
+                text = 'That is not an answer.'
+                setTextOutput(text)
+                playerButton['text'] = 'Submit'
+                await at.event(playerButton, '<Button>')
+                at.start(fight())
+        else:
+            text = 'Turn Count: ' + str(battleData['turn_count']) + '\n'
+            text += 'Fighting: ' + battleData['current_enemy'] + '\n'
+            text += 'Enemy Health: ' + str(battleData['current_enemy_health']) + '\n\n'
+            text += 'What attack would you like to use?\n'
+            options = []
+            num = 0
+            attacks = playerData['attacks']['attack_list']
+            for i in attacks:
+                num += 1
+                text += str(num) + '. ' + i['name'] + '    MP: ' + str(i['mp_cost']) + '\n'
+                options += str(num)
+                options.append(i['name'])
+            setTextOutput(text)
+            print(options)
+            playerButton['text'] = 'Submit'
+            await at.event(playerButton, '<Button>')
+            answer = grabText()
+            if options.__contains__(answer):
+                text = ''
 
 
 async def shop():
@@ -1548,6 +1604,36 @@ def grabText():
     answer = playerAnswerBox.get().replace(' ', '').lower()
     playerAnswerBox.delete(0, END)
     return answer
+
+
+def bgMusicPlayer(songName):
+    global musicPlayer
+    global currentSong
+
+    if settingsData['backgroundMusic']:
+        if currentSong == songName:
+            return
+        else:
+            stopMusic()
+            musicPlayer = vlc.MediaPlayer('sounds/BG/' + songName + '.mp3')
+            musicPlayer.play()
+            currentSong = songName
+    else:
+        stopMusic()
+
+
+def stopMusic():
+    global currentSong
+    musicPlayer.stop()
+    currentSong = 'none'
+
+
+def bgFXPlayer(fxName):
+    global fxPlayer
+
+    if settingsData['soundFX']:
+        fxPlayer = vlc.MediaPlayer('sounds/FX/' + fxName + '.mp3')
+        fxPlayer.play()
 
 
 def saveData():

@@ -142,11 +142,10 @@ def attackDataUpdate():
             }
         }
     }
-
-
     with open('gameData/attackData.json', 'w') as outfile:
         attacksJson = json.dumps(attack_lists)
         json.dump(attacksJson, outfile)
+
 
 def allDataUpdate():
     attackDataUpdate()
@@ -154,5 +153,6 @@ def allDataUpdate():
     playerDataUpdate()
     battleDataUpdate()
     settingsDataUpdate()
+
 
 battleDataUpdate()
